@@ -3,25 +3,46 @@
 
 #!/usr/bin/python
 
+#PREREQUISITES: Below python libraries must be installed on the computer, eapi must be enabled on the DUTS, the DUTs must have management connectivity from the computer
+
 import pexpect
 import json
 import pyeapi
+import sys
+import os
+import time
 
-username= "anandgokul"
+print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
+print "\t\t\t\t\tInstalling the requirements for running this script\n \n"
+print "Please enter your password for installing the required Python packages like pyeapi, pexpect, and json"
+time.sleep(3)
+
+var= os.system("sudo pip install pexpect")
+var= os.system("sudo pip install simplejson")
+var= os.system("sudo pip install pyeapi")
+
+#First argument is username of person to login to us128
+#Second argument is the us128 password for username
+#Third argument is username of person whose account we want to see
+
+usernamelogin= sys.argv[1]
+password= sys.argv[2]
+username=sys.argv[3]
+
+os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
 
 print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
 print "\t\t\t\t\tNeighbor Details of DUTS in testbed for User '"+username+ "':"
 
-cmd1= "Art list --pool=systest| grep "+ username
-cmd2 = "show lldp neighbor"
 
 #*************************************************************************************
 #The below code will use login to us128 and grab the list of DUTs owned by current user
 
-child = pexpect.spawn("ssh "+ username+ "@us128",timeout=120)
+child = pexpect.spawn("ssh "+ usernamelogin+ "@us128",timeout=120)
 child.expect("password:")
-child.sendline("anandgokul123")
+child.sendline(password)
 
+cmd1= "Art list --pool=systest| grep "+ username
 child.expect(">")
 child.sendline(cmd1)
 
@@ -47,11 +68,17 @@ for i in xrange(0, len(duts2)):
 dutslist=duts3[:-1]
 
 print "\n \n The DUTs owned by " + username +" are:  " + str(dutslist)
+
+
+
 print"\n ---------------------------------------------------------------------------------------------------------------------- \n "
-print "WARNING: Ensure all ports are not shut or errdisabled. Else, they will not be included in your topology\n "
+print "WARNING 1: Ensure connectivity to the DUTs from this device"
+print "WARNING 2: Ensure eapi is enabled on your DUTs (management api http-commands--> no shut) "
+print "WARNING 3: Ensure all ports are not shut or errdisabled. Else, they will not be included in your topology. \n"
 #************************************************************************
 #The below code will use the DUT names from above and get raw lldp information
 
+#cmd2 = "show lldp neighbor"
 
 # for i in xrange(0,len(dutslist)):
 #    print dutslist[i]+ ":"
@@ -66,6 +93,37 @@ print "WARNING: Ensure all ports are not shut or errdisabled. Else, they will no
 #    print ""
 #    print"-----------------------------------------------------------"
 #    child.close()
+
+#************************************************************************
+# #The below code will enable eApi on all the DUTs in above list
+
+# ssh_newkey = 'Are you sure you want to continue connecting'
+
+# for i in xrange(0,len(dutslist)):
+
+# 	child_new = pexpect.spawn("ssh "+ "admin@"+dutslist[i],timeout=120)
+
+# 	ret_val=child_new.expect([ssh_newkey,"word",">"])
+#         if ret_val == 0:
+#             	child_new.sendline('yes')
+#             	ret_val=child_new.expect([ssh_newkey,'password:',">"])
+#         if ret_val==1:
+#             	child_new.sendline("arastra")
+#             	child_new.expect("#")
+#         elif ret_val==2:
+#             	pass
+
+
+# 	child_new.expect(">")
+# 	child_new.sendline("enable")
+# 	child_new.expect("#")
+# 	child_new.sendline("conf t")
+# 	child_new.expect("#")
+# 	child_new.sendline("management api http-commands")
+# 	child_new.expect("#")
+# 	child_new.sendline("no shut")
+# 	child_new.expect("#")
+# 	child_new.close()
 
 #************************************************************************
 #The below code will grab lldp info from all DUTs in json format and refine it and
@@ -140,7 +198,7 @@ for i in xrange(0,len(final_dict)):
 
 
 print"\n ---------------------------------------------------------------------------------------------------------------------- \n "
-print "Presented to you by anandgokul (Ping me if any errors/ exceptions are encountered....Sayonara! :D "
+print "Presented to you by anandgokul (Ping me if any errors/ exceptions are encountered. This script doesn't handle most exceptions as of now...Will add that functionality l8r....Sayonara! :D "
 
 
 #************************************************************************
