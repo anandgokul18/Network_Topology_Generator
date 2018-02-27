@@ -1,6 +1,6 @@
 # Project Title
 
-One Paragraph of project description goes here
+Automatic Topology Generator esp. for Arista Internal Users
 
 ## Getting Started
 
@@ -8,10 +8,21 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-What things you need to install the software and how to install them
+I have added methods to solve most of the dependencies/ required packages for this script in the code itself. This helps to get started right away without having to manually resolve the dependencies since I have used different non-standard packages which need to be pip-ed separately.
 
+ONE THING which users need to ensure is to verify that their DUTs ahve management connectivity from their laptops. If not, please add a route to your Mac on the DUTs. You can verify the connectivity by pinging the devices from your laptop initially.
+
+The below example shows how to verify if you have connectivity...I know, duh, what is he thinking...but this is one major reason why the code fails and I haven't handled the exception due to non-reachability YET!
 ```
-Give examples
+anandgokul:~ anandgokul$ ping co546
+PING co546.sjc.aristanetworks.com (172.24.78.209): 56 data bytes
+64 bytes from 172.24.78.209: icmp_seq=0 ttl=57 time=306.911 ms
+64 bytes from 172.24.78.209: icmp_seq=1 ttl=57 time=329.736 ms
+^C
+--- co546.sjc.aristanetworks.com ping statistics ---
+2 packets transmitted, 2 packets received, 0.0% packet loss
+round-trip min/avg/max/stddev = 306.911/318.323/329.736/11.413 ms
+anandgokul:~ anandgokul$
 ```
 
 ### Installing
@@ -56,11 +67,6 @@ Give an example
 
 Add additional notes about how to deploy this on a live system
 
-## Built With
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
 
 ## Contributing
 
