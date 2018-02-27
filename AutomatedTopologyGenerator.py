@@ -137,6 +137,37 @@ def func_neighbor_generator(dutslist):
 
 	return final_dict
 
+def func_eapi_enabler(dutslist):
+	#************************************************************************
+	#The below code will enable eApi on all the DUTs in above list
+
+	ssh_newkey = 'Are you sure you want to continue connecting'
+
+	for i in xrange(0,len(dutslist)):
+
+		child_new = pexpect.spawn("ssh "+ "admin@"+dutslist[i],timeout=120)
+
+		ret_val=child_new.expect([ssh_newkey,"word",">"])
+	        if ret_val == 0:
+	            	child_new.sendline('yes')
+	            	ret_val=child_new.expect([ssh_newkey,'password:',">"])
+	        if ret_val==1:
+	            	child_new.sendline("arastra")
+	            	child_new.expect("#")
+	        elif ret_val==2:
+	            	pass
+
+
+		child_new.expect(">")
+		child_new.sendline("enable")
+		child_new.expect("#")
+		child_new.sendline("conf t")
+		child_new.expect("#")
+		child_new.sendline("management api http-commands")
+		child_new.expect("#")
+		child_new.sendline("no shut")
+		child_new.expect("#")
+		child_new.close()
 
 def func_neighbor_printer(final_dict):
 	#************************************************************************
@@ -161,6 +192,7 @@ if __name__== "__main__":
   	func_requirements_satisfier()  #install the required python libraries automatically
   	var_dutslist= func_listofduts_grabber(usernamelogin,password,username) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
   	func_warning_message() #Will warn users about the list of reasons why the script could fail
+  	##Doesn't work YET### func_eapi_enabler(var_dutslist) #Will enable eApi on all DUTs so that users don't have to...How cool! 
   	var_finalconnectiondetails= func_neighbor_generator(var_dutslist) #does the work of grabbing lldp info from all the DUTs, and removing duplicates 
   	func_neighbor_printer(var_finalconnectiondetails)
 
