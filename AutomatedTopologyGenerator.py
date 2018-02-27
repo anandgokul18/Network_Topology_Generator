@@ -5,12 +5,13 @@
 
 #PREREQUISITES: Below python libraries must be installed on the computer, eapi must be enabled on the DUTS, the DUTs must have management connectivity from the computer
 
-import pexpect
-import json
-import pyeapi
+import pexpect #SSH library with expect support
+import json #Output of eApi needs to be parsed
+import pyeapi #eApi support
 import sys
 import os
 import time
+import ConfigParser #For checking input arguments
 
 def func_requirements_satisfier():
 	print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
@@ -188,26 +189,58 @@ def func_neighbor_printer(final_dict):
 
 
 	print"\n ---------------------------------------------------------------------------------------------------------------------- \n "
-	print "Presented to you by anandgokul (Ping me if any errors/ exceptions are encountered. This script doesn't handle most exceptions as of now...Will add that functionality l8r....Sayonara! :D \n \n"
+	print "Presented to you by anandgokul. Ping me if any errors/ exceptions are encountered that I missed handling...Sayonara! :D \n \n"
 
-if __name__== "__main__":
-  
-  	#First argument is username of person to login to us128
-	#Second argument is the us128 password for username
-	#Third argument is username of person whose account we want to see
 
-	usernamelogin= sys.argv[1]
-	server='us128'
-	password= sys.argv[2]
-	username=sys.argv[3]
+# Main Function
+def main(argv=sys.argv):
 
+	userinput=sys.argv[1]
+
+	try:
+		usernamelogin=(userinput.split('@'))[0]
+		server=(userinput.split('@')[1]).split("::")[0]
+		password=userinput.split('::')[1]
+
+	except IndexError:
+		print '\nERROR: Please give the input in the form of: username@userserver::password [differentuser]'
+		print 'Example: anandgokul@us128::password \n'
+		sys.exit(1)
+
+	#************************************************************************
+	#handling cases wherein user hasn't provided different user for topology
+	if len(sys.argv) == 2:
+		username=usernamelogin
+	if len(sys.argv) == 3:
+		username=sys.argv[2]
+
+	logical_main(usernamelogin, server, password, username)
+
+#This is the logical Main where we call other functions
+def logical_main(usernamelogin, server, password, username):
+	
   	func_requirements_satisfier()  #install the required python libraries automatically
   	var_dutslist= func_listofduts_grabber(usernamelogin,server,password,username) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
   	func_warning_message() #Will warn users about the list of reasons why the script could fail
   	##Doesn't work YET### func_eapi_enabler(var_dutslist) #Will enable eApi on all DUTs so that users don't have to...How cool!  For now, I will give out a error message asking users to enable eAPI manually.
   	var_finalconnectiondetails= func_neighbor_generator(var_dutslist) #does the work of grabbing lldp info from all the DUTs, and removing duplicates 
   	func_neighbor_printer(var_finalconnectiondetails)
- 	
+
+
+if __name__== "__main__":
+
+  	#Usage: python filename.py loginname@server::password usernamefordetails
+
+	#************************************************************************
+	#The below code will handle error and provide info as to how input should be given
+
+	if len(sys.argv) < 2 or len(sys.argv) > 3: #This kicks in if user hasnt provided even the basic login info, passwored AND if user provided more than required info
+    		sys.stderr.write("Usage:  username@userserver::password [username]\n")
+    		sys.stderr.write('  <mandatory>  [optional]\n')
+    		sys.exit(1)
+
+	main(sys.argv)
+
 
 #************************************************************************
 #Sayonara guys! Enjoy the code. Presented to you by one and only anandgokul@
