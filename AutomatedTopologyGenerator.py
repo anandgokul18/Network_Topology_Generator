@@ -202,9 +202,16 @@ def main(argv=sys.argv):
 		server=(userinput.split('@')[1]).split("::")[0]
 		password=userinput.split('::')[1]
 
+		if password=='': #Covering the corner case wherein :: is given but no password after that
+			print '\n[[ERROR]]: Please give the input in the form of: username@userserver::password [differentuser] \n'
+			print 'Example in case you need your own topology\t\t: anandgokul@us128::password'
+			print "Example in case you need someone else's topology\t: anandgokul@us128::password jonsnow\n"
+			sys.exit(1)
+
 	except IndexError:
-		print '\nERROR: Please give the input in the form of: username@userserver::password [differentuser]'
-		print 'Example: anandgokul@us128::password \n'
+		print '\n[[ERROR]]: Please give the input in the form of: username@userserver::password [differentuser] \n'
+		print 'Example in case you need your own topology\t\t: anandgokul@us128::password'
+		print "Example in case you need someone else's topology\t: anandgokul@us128::password jonsnow\n"
 		sys.exit(1)
 
 	#************************************************************************
@@ -222,8 +229,12 @@ def logical_main(usernamelogin, server, password, username):
   	func_requirements_satisfier()  #install the required python libraries automatically
   	var_dutslist= func_listofduts_grabber(usernamelogin,server,password,username) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
   	func_warning_message() #Will warn users about the list of reasons why the script could fail
+  	
   	##Doesn't work YET### func_eapi_enabler(var_dutslist) #Will enable eApi on all DUTs so that users don't have to...How cool!  For now, I will give out a error message asking users to enable eAPI manually.
+  	
   	var_finalconnectiondetails= func_neighbor_generator(var_dutslist) #does the work of grabbing lldp info from all the DUTs, and removing duplicates 
+  	#print var_finalconnectiondetails
+  	
   	func_neighbor_printer(var_finalconnectiondetails)
 
 
