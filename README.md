@@ -6,9 +6,13 @@ Automatic Topology Generator esp. for Arista Internal Users
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-### Prerequisites
+### Installation
 
-I have added methods to solve most of the dependencies/ required packages for this script in the code itself. This helps to get started right away without having to manually resolve the dependencies since I have used different non-standard packages which need to be pip-ed separately.
+--> In terminal/bash shell, navigate to the directory where you have downloaded this script
+--> Then, do a "sudo pip install -r requirements.txt" from that directory
+--> Then, run the script using ./AutomatedTopologyGenerator.py username@server::password [user]
+
+### Information Transfer
 
 ONE THING which users need to ensure is to verify that their DUTs ahve management connectivity from their laptops. If not, please add a route to your Mac on the DUTs. You can verify the connectivity by pinging the devices from your laptop initially.
 
@@ -24,24 +28,6 @@ PING co546.sjc.aristanetworks.com (172.24.78.209): 56 data bytes
 round-trip min/avg/max/stddev = 306.911/318.323/329.736/11.413 ms
 anandgokul:~ anandgokul$
 ```
-
-### Installing
-
-A step by step series of examples that tell you have to get a development env running
-
-Say what the step will be
-
-```
-Give the example
-```
-
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
 
 ## Running the tests
 
