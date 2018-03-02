@@ -102,23 +102,28 @@ def func_neighbor_generator(dutslist):
 	  		
 	  		func_eapi_enabler(dutslist[i])
 
-			#Same as above: Using Python eAPi for getting outputs in json format
-			conn = pyeapi.connect(host=dutslist[i], transport='https')
-			temp = conn.execute(['show lldp neighbors'])
-			#print temp
+	  		try:
+				#Same as above: Using Python eAPi for getting outputs in json format
+				conn = pyeapi.connect(host=dutslist[i], transport='https')
+				temp = conn.execute(['show lldp neighbors'])
+				#print temp
 
-			allneighbors =temp['result'][0]['lldpNeighbors']
-			#print allneighbors
+				allneighbors =temp['result'][0]['lldpNeighbors']
+				#print allneighbors
 
-			for j in xrange(0,len(allneighbors)):
-				temp_diction = allneighbors[j]
-				temp_diction['myDevice']=str(dutslist[i])+'.sjc.aristanetworks.com'
-				grand_diction.append(temp_diction)
-			#print temp_diction
+				for j in xrange(0,len(allneighbors)):
+					temp_diction = allneighbors[j]
+					temp_diction['myDevice']=str(dutslist[i])+'.sjc.aristanetworks.com'
+					grand_diction.append(temp_diction)
+				#print temp_diction
 
-			grand_diction = grand_diction[:-1]
+				grand_diction = grand_diction[:-1]
 
-			#print grand_diction
+				#print grand_diction
+
+			except:
+				print "Oops...the above eApi enabling failed. can you enable eApi manually on "+dutslist[i]+ " manually by doing 'management api http-commands' --> 'no shut'"
+				sys.exit(1)
 
 	#************************************************************************
 	#The below code will remove the duplicates from the grand dictionary such that one connection shows up only once. The duplicates are marked as key=temp and value=NULL
@@ -182,13 +187,15 @@ def func_eapi_enabler(dutname):
 		#Setting Pagination disabled
 		workproc.send("\n ter len 0 \n") 
 		workproc.send('en \n conf \n')
+		workproc.send('default management api http \n')
+		time.sleep(5)
 		workproc.send('management api http \n')
-		time.sleep(1)
-		output=workproc.recv(65535)
 		workproc.send("\n no shut \n")
+		output=workproc.recv(65535)
 		#print output
-		print '[Update] eApi has been successfully enabled on '+dutname+'\n'
 		initproc.close()
+		print '[Update] eApi has been successfully enabled on '+dutname+'\n'
+
 
 	except socket.error:
 		print "[ERROR]: Device "+dutname +" is unreachable. Please fix it and rerun the script! \n"
@@ -229,14 +236,14 @@ def func_graph_gen(final_dict):
 		graph_string=graph_string+tempvar+'\n'
 
 	graph_string=graph_string+'}'
-	#print graph_string
+	print graph_string
 
 	print "----------------------------------------------------------------------------"
 	print "Your topology (both .PNG and .GV) has been generated on the current directory"
 	print "There is both a readily-available png file as well as a .gv file which can be imported to graphing tools like OmniGraffle for further editing(get license for Omnigraffle from helpdesk..:/\n"
-	s = Source(graph_string, filename="Topology.gv", format="png")
+	s = Source(graph_string, filename="Topology.gv", format="pdf")
 	s.view()
-	if True: #try:
+	try:
 		installationcheckcmd="ls /Applications/ | grep -i OmniGraffle"
 		returned_value = subprocess.call(installationcheckcmd, shell=True)
 
@@ -252,9 +259,9 @@ def func_graph_gen(final_dict):
     			["/usr/bin/open", "-W", "-n", "-a", "/Applications/OmniGraffle.app","Topology.gv"]
     		)
 
-	#except:
-	#	print "Finished!"
-	#	sys.exit(1)
+	except:
+		print "Finished!"
+		sys.exit(1)
 
 #LOGICAL MAIN FUNCTION
 def logical_main(usernamelogin, server, password, username):
