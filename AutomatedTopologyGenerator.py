@@ -64,9 +64,7 @@ def func_listofduts_grabber(usernamelogin,server,password,username):
 
 def func_warning_message():
 	print"\n ---------------------------------------------------------------------------------------------------------------------- \n "
-	print "WARNING 1: Ensure connectivity to the DUTs from this device"
-	#print "WARNING 2: Ensure eapi is enabled on your DUTs (management api http-commands--> no shut) " #Adding exception handling for this
-	print "WARNING 2: Ensure that the ports are not shut or errdisabled. Else, they will not be included in your topology. \n"
+	print "Note: Please ensure that the ports are not shut or errdisabled. Else, they will not be included in your topology. \n"
 
 def func_neighbor_generator(dutslist):
 	
@@ -217,7 +215,7 @@ def func_graph_gen(final_dict):
 	#Installing the requirements for graphviz
 	#var= os.system("sudo pip install graphviz")
 	print "\n----------------------------------------------------------------------------"
-	print "Please complete the installation the Xcode Dev Tools (if prompted) via the GUI and rerun this script"
+	print "Please complete the installation of Xcode Dev Tools (if prompted) via the GUI and rerun this script"
 	print "Status:"
 	var1= os.system("xcode-select --install")
 	print "----------------------------------------------------------------------------"
