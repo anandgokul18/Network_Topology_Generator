@@ -239,10 +239,18 @@ def func_graph_gen(final_dict):
 	#print graph_string
 
 	print "----------------------------------------------------------------------------"
-	print "Your topology (both .PNG and .GV) has been generated on the current directory"
-	print "There is both a readily-available png file as well as a .gv file which can be imported to graphing tools like OmniGraffle for further editing(get license for Omnigraffle from helpdesk..:/\n"
-	s = Source(graph_string, filename="Topology.gv", format="pdf")
-	s.view()
+	print "Your topology (both .PDF and .GV) has been generated on the current directory"
+	print "There is both a readily-available pdf file as well as a .gv file which can be imported to graphing tools like OmniGraffle for further editing(get license for Omnigraffle from helpdesk..:/\n"
+	try:
+		s = Source(graph_string, filename="Topology.gv", format="pdf")
+		s.view()
+	except:
+		var=os.system('''/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"''')
+		var= os.system("brew install graphviz")
+		os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
+		s = Source(graph_string, filename="Topology.gv", format="pdf")
+		s.view()
+		
 	try:
 		installationcheckcmd="ls /Applications/ | grep -i OmniGraffle"
 		returned_value = subprocess.call(installationcheckcmd, shell=True)
