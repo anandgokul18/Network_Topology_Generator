@@ -4,7 +4,6 @@
 #!/usr/bin/python
 
 #PREREQUISITES: Below python libraries must be installed on the computer, eapi must be enabled on the DUTS, the DUTs must have management connectivity from the computer
-
 import pexpect #SSH library with expect support
 import json #Output of eApi needs to be parsed
 import pyeapi #eApi support
@@ -16,19 +15,7 @@ from graphviz import Source #Make a topology graph
 import paramiko
 import socket
 from pyeapi import eapilib
-
-def func_requirements_satisfier():
-	print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
-	print "\t\t\t\t\tInstalling the requirements for running this script\n \n"
-	print "Please enter your Macbook's password for installing the required Python packages like pyeapi, pexpect, and json \n"
-	time.sleep(3)
-
-	var= os.system("sudo pip install pexpect")
-	var= os.system("sudo pip install simplejson")
-	var= os.system("sudo pip install pyeapi")
-
-
-	os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
+import subprocess
 
 def func_listofduts_grabber(usernamelogin,server,password,username):
 	print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
@@ -245,15 +232,33 @@ def func_graph_gen(final_dict):
 	#print graph_string
 
 	print "----------------------------------------------------------------------------"
-	print "Your topology has been generated on the current directory"
-	print "There is both a readily-available png file as well as a .gv file which can be imported to graphing tools like OmniGraffle for further editing(get license for Omnigraffle from helpdesk..:/)"
+	print "Your topology (both .PNG and .GV) has been generated on the current directory"
+	print "There is both a readily-available png file as well as a .gv file which can be imported to graphing tools like OmniGraffle for further editing(get license for Omnigraffle from helpdesk..:/\n"
 	s = Source(graph_string, filename="Topology.gv", format="png")
 	s.view()
+	if True: #try:
+		installationcheckcmd="ls /Applications/ | grep -i OmniGraffle"
+		returned_value = subprocess.call(installationcheckcmd, shell=True)
+
+		if returned_value==1: #That means OmniGraffle is NOT present
+			print "----------------------------------------------------------------------------"
+			print "You don't have OmniGraffle installed. Please contact IT helpdesk"
+
+
+		elif returned_value==0: #That means OmniGraffle is present
+			print "----------------------------------------------------------------------------"
+			print "If you have Omnigraffle installed, choose 'Hierarchial' for getting the Topology in editable format."
+			subprocess.call(
+    			["/usr/bin/open", "-W", "-n", "-a", "/Applications/OmniGraffle.app","Topology.gv"]
+    		)
+
+	#except:
+	#	print "Finished!"
+	#	sys.exit(1)
 
 #LOGICAL MAIN FUNCTION
 def logical_main(usernamelogin, server, password, username):
 	
-  	#func_requirements_satisfier()  #install the required python libraries automatically
   	var_dutslist= func_listofduts_grabber(usernamelogin,server,password,username) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
   	func_warning_message() #Will warn users about the list of reasons why the script could fail
   	
