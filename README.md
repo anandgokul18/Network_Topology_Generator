@@ -11,7 +11,7 @@ These instructions will get you a copy of the project up and running on your loc
 1. In terminal/bash shell, navigate to the directory where you have downloaded this script
 2. Do a 'sudo easy_install pip' to install pip. Skip this step if already installed.
 2. Then, do a "sudo pip install -r requirements.txt" from that directory
-3. Then, run the script using ./AutomatedTopologyGenerator.py username@server::password [user]
+3. Then, run the script using python AutomatedTopologyGenerator.py username@server::password [user]
 
 ### Information Transfer
 

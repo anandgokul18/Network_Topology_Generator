@@ -236,7 +236,7 @@ def func_graph_gen(final_dict):
 		graph_string=graph_string+tempvar+'\n'
 
 	graph_string=graph_string+'}'
-	print graph_string
+	#print graph_string
 
 	print "----------------------------------------------------------------------------"
 	print "Your topology (both .PNG and .GV) has been generated on the current directory"
