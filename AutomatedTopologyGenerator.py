@@ -12,16 +12,18 @@ import sys
 import os
 import time
 import ConfigParser #For checking input arguments
+from graphviz import Source #Make a topology graph
 
 def func_requirements_satisfier():
 	print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
 	print "\t\t\t\t\tInstalling the requirements for running this script\n \n"
-	print "Please enter your password for installing the required Python packages like pyeapi, pexpect, and json \n"
+	print "Please enter your Macbook's password for installing the required Python packages like pyeapi, pexpect, and json \n"
 	time.sleep(3)
 
 	var= os.system("sudo pip install pexpect")
 	var= os.system("sudo pip install simplejson")
 	var= os.system("sudo pip install pyeapi")
+
 
 	os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
 
@@ -192,7 +194,59 @@ def func_neighbor_printer(final_dict):
 	print "Presented to you by anandgokul. Ping me if any errors/ exceptions are encountered that I missed handling...Sayonara! :D \n \n"
 
 
-# Main Function
+def func_graph_gen(final_dict):
+
+	#Installing the requirements for graphviz
+	var= os.system("sudo pip install graphviz")
+	print "\n----------------------------------------------------------------------------"
+	print "Please complete the installation the Xcode Dev Tools (if prompted) via the GUI and rerun this script"
+	print "Status:"
+	var1= os.system("xcode-select --install")
+	print "----------------------------------------------------------------------------"
+	var= os.system("brew install graphviz")
+
+	os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
+
+	graph_string='''
+	digraph finite_state_machine {	
+	rankdir=LR;
+	size="8,5"
+	node [shape = circle];
+	'''
+	for i in xrange(0,len(final_dict)):
+		tempvar=final_dict[i]['neighborDevice'] + ' -> ' + final_dict[i]['myDevice'] + ' [ label = "' + final_dict[i]['neighborPort'] + '---' + final_dict[i]['port'] + '" ]'
+		graph_string=graph_string+tempvar+'\n'
+
+	graph_string=graph_string+'}'
+	#print graph_string
+
+	print "----------------------------------------------------------------------------"
+	print "Your topology has been generated on the current directory"
+	print "There is both a readily-available png file as well as a .gv file which can be imported to graphing tools like OmniGraffle for further editing(get license for Omnigraffle from helpdesk..:/)"
+	s = Source(graph_string, filename="Topology.gv", format="png")
+	s.view()
+
+#LOGICAL MAIN FUNCTION
+def logical_main(usernamelogin, server, password, username):
+	
+  	func_requirements_satisfier()  #install the required python libraries automatically
+  	var_dutslist= func_listofduts_grabber(usernamelogin,server,password,username) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
+  	func_warning_message() #Will warn users about the list of reasons why the script could fail
+  	
+  	##Doesn't work YET### func_eapi_enabler(var_dutslist) #Will enable eApi on all DUTs so that users don't have to...How cool!  For now, I will give out a error message asking users to enable eAPI manually.
+  	
+  	var_finalconnectiondetails= func_neighbor_generator(var_dutslist) #does the work of grabbing lldp info from all the DUTs, and removing duplicates 
+  	#print var_finalconnectiondetails
+  	
+  	func_neighbor_printer(var_finalconnectiondetails)
+
+  	graphrequired = raw_input("Do you need a graphical representation? (Y/n) ")
+  	if graphrequired=='Y' or graphrequired=='y':
+  		func_graph_gen(var_finalconnectiondetails) #generates a graphical representation
+  	else:
+  		print 'Finished!'
+
+# Intermediate Function between Actual Main and Logical Main
 def main(argv=sys.argv):
 
 	userinput=sys.argv[1]
@@ -222,21 +276,6 @@ def main(argv=sys.argv):
 		username=sys.argv[2]
 
 	logical_main(usernamelogin, server, password, username)
-
-#This is the logical Main where we call other functions
-def logical_main(usernamelogin, server, password, username):
-	
-  	func_requirements_satisfier()  #install the required python libraries automatically
-  	var_dutslist= func_listofduts_grabber(usernamelogin,server,password,username) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
-  	func_warning_message() #Will warn users about the list of reasons why the script could fail
-  	
-  	##Doesn't work YET### func_eapi_enabler(var_dutslist) #Will enable eApi on all DUTs so that users don't have to...How cool!  For now, I will give out a error message asking users to enable eAPI manually.
-  	
-  	var_finalconnectiondetails= func_neighbor_generator(var_dutslist) #does the work of grabbing lldp info from all the DUTs, and removing duplicates 
-  	#print var_finalconnectiondetails
-  	
-  	func_neighbor_printer(var_finalconnectiondetails)
-
 
 if __name__== "__main__":
 
