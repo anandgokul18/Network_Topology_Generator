@@ -200,6 +200,7 @@ def func_eapi_enabler(dutname):
 		output=workproc.recv(65535)
 		workproc.send("\n no shut \n")
 		#print output
+		print '[Update] eApi has been successfully enabled on '+dutname+'\n'
 		initproc.close()
 
 	except socket.error:
