@@ -1,0 +1,4 @@
+pexpect
+simplejson
+pyeapi
+graphviz

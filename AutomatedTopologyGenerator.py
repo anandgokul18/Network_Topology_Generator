@@ -197,7 +197,7 @@ def func_neighbor_printer(final_dict):
 def func_graph_gen(final_dict):
 
 	#Installing the requirements for graphviz
-	var= os.system("sudo pip install graphviz")
+	#var= os.system("sudo pip install graphviz")
 	print "\n----------------------------------------------------------------------------"
 	print "Please complete the installation the Xcode Dev Tools (if prompted) via the GUI and rerun this script"
 	print "Status:"
@@ -229,7 +229,7 @@ def func_graph_gen(final_dict):
 #LOGICAL MAIN FUNCTION
 def logical_main(usernamelogin, server, password, username):
 	
-  	func_requirements_satisfier()  #install the required python libraries automatically
+  	#func_requirements_satisfier()  #install the required python libraries automatically
   	var_dutslist= func_listofduts_grabber(usernamelogin,server,password,username) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
   	func_warning_message() #Will warn users about the list of reasons why the script could fail
   	
