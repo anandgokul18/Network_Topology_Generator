@@ -2,3 +2,4 @@ pexpect
 simplejson
 pyeapi
 graphviz
+paramiko

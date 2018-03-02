@@ -13,6 +13,9 @@ import os
 import time
 import ConfigParser #For checking input arguments
 from graphviz import Source #Make a topology graph
+import paramiko
+import socket
+from pyeapi import eapilib
 
 def func_requirements_satisfier():
 	print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
@@ -87,8 +90,8 @@ def func_neighbor_generator(dutslist):
 	grand_diction=[]
 
   	#The below try and except block will handle errors due to eAPI not enabled on one of the DUT
-	try:
-		for i in xrange(0,len(dutslist)):
+	for i in xrange(0,len(dutslist)):
+		try:
 		   #Using Python eAPi for getting outputs in json format
 		   conn = pyeapi.connect(host=dutslist[i], transport='https')
 		   temp = conn.execute(['show lldp neighbors'])
@@ -105,11 +108,30 @@ def func_neighbor_generator(dutslist):
 
 		   grand_diction = grand_diction[:-1]
 
-			#print grand_diction
+			#print grand_diction	
 
-	except pyeapi.eapilib.ConnectionError as e:
-  		print "\n Huh...:x :x FAILED: eApi is not enabled on one of your devices namely:<-- "+dutslist[i]+"-->. Kindle enable eApi on them by configuring: 'management api http-commands--> no shut' to proceed \n"
-  		sys.exit()
+		except pyeapi.eapilib.ConnectionError as e:
+	  		print "\n[Please Wait]: eApi is not enabled on one of your devices namely:<-- "+dutslist[i]+"-->. Hold on while we do that for you \n"
+	  		
+	  		func_eapi_enabler(dutslist[i])
+
+			#Same as above: Using Python eAPi for getting outputs in json format
+			conn = pyeapi.connect(host=dutslist[i], transport='https')
+			temp = conn.execute(['show lldp neighbors'])
+			#print temp
+
+			allneighbors =temp['result'][0]['lldpNeighbors']
+			#print allneighbors
+
+			for j in xrange(0,len(allneighbors)):
+				temp_diction = allneighbors[j]
+				temp_diction['myDevice']=str(dutslist[i])+'.sjc.aristanetworks.com'
+				grand_diction.append(temp_diction)
+			#print temp_diction
+
+			grand_diction = grand_diction[:-1]
+
+			#print grand_diction
 
 	#************************************************************************
 	#The below code will remove the duplicates from the grand dictionary such that one connection shows up only once. The duplicates are marked as key=temp and value=NULL
@@ -151,37 +173,38 @@ def func_neighbor_generator(dutslist):
 
 	return final_dict
 
-def func_eapi_enabler(dutslist):
+def func_eapi_enabler(dutname):
 	#************************************************************************
 	#The below code will enable eApi on all the DUTs in above list
 
-	ssh_newkey = 'Are you sure you want to continue connecting'
+	try:
+		ipaddr= socket.gethostbyname(dutname)
+		username='admin'
+		password=''
 
-	for i in xrange(0,len(dutslist)):
+		initproc=paramiko.SSHClient()
+		initproc.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-		child_new = pexpect.spawn("ssh "+ "admin@"+dutslist[i],timeout=120)
+		initproc.connect(ipaddr, username=username, password=password)
+		
+		workproc=initproc.invoke_shell()
 
-		ret_val=child_new.expect([ssh_newkey,"word",">"])
-	        if ret_val == 0:
-	            	child_new.sendline('yes')
-	            	ret_val=child_new.expect([ssh_newkey,'password:',">"])
-	        if ret_val==1:
-	            	child_new.sendline("arastra")
-	            	child_new.expect("#")
-	        elif ret_val==2:
-	            	pass
+		output=workproc.recv(65535)
+		#print output
 
+		#Setting Pagination disabled
+		workproc.send("\n ter len 0 \n") 
+		workproc.send('en \n conf \n')
+		workproc.send('management api http \n')
+		time.sleep(1)
+		output=workproc.recv(65535)
+		workproc.send("\n no shut \n")
+		#print output
+		initproc.close()
 
-		child_new.expect(">")
-		child_new.sendline("enable")
-		child_new.expect("#")
-		child_new.sendline("conf t")
-		child_new.expect("#")
-		child_new.sendline("management api http-commands")
-		child_new.expect("#")
-		child_new.sendline("no shut")
-		child_new.expect("#")
-		child_new.close()
+	except socket.error:
+		print "[ERROR]: Device "+dutname +" is unreachable. Please fix it and rerun the script! \n"
+		sys.exit(1)
 
 def func_neighbor_printer(final_dict):
 	#************************************************************************
@@ -233,18 +256,16 @@ def logical_main(usernamelogin, server, password, username):
   	var_dutslist= func_listofduts_grabber(usernamelogin,server,password,username) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
   	func_warning_message() #Will warn users about the list of reasons why the script could fail
   	
-  	##Doesn't work YET### func_eapi_enabler(var_dutslist) #Will enable eApi on all DUTs so that users don't have to...How cool!  For now, I will give out a error message asking users to enable eAPI manually.
-  	
   	var_finalconnectiondetails= func_neighbor_generator(var_dutslist) #does the work of grabbing lldp info from all the DUTs, and removing duplicates 
   	#print var_finalconnectiondetails
   	
   	func_neighbor_printer(var_finalconnectiondetails)
 
   	graphrequired = raw_input("Do you need a graphical representation? (Y/n) ")
-  	if graphrequired=='Y' or graphrequired=='y':
-  		func_graph_gen(var_finalconnectiondetails) #generates a graphical representation
-  	else:
+  	if graphrequired=='n' or graphrequired=='N':
   		print 'Finished!'
+  	else:
+  		func_graph_gen(var_finalconnectiondetails) #generates a graphical representation
 
 # Intermediate Function between Actual Main and Logical Main
 def main(argv=sys.argv):
