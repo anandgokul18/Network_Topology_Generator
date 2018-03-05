@@ -256,7 +256,7 @@ def func_graph_gen(final_dict):
 
 		if returned_value==1: #That means OmniGraffle is NOT present
 			print "----------------------------------------------------------------------------"
-			print "You don't have OmniGraffle installed. Please contact IT helpdesk"
+			print "The PDF file has been generated in current directory! " #Instead of OmniGraffle not installed message
 
 
 		elif returned_value==0: #That means OmniGraffle is present
