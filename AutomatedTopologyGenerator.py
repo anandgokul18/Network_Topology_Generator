@@ -17,7 +17,7 @@ import socket
 from pyeapi import eapilib
 import subprocess
 
-def func_listofduts_grabber(usernamelogin,server,password,username):
+def func_listofduts_grabber(usernamelogin,server,password,username,poolname):
 	print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
 	print "\t\t\t\t\tNeighbor Details of DUTS in testbed for User '"+username+ "':"
 
@@ -30,7 +30,7 @@ def func_listofduts_grabber(usernamelogin,server,password,username):
 		child.expect("password:")
 		child.sendline(password)
 
-		cmd1= "Art list --pool=systest| grep "+ username
+		cmd1= "Art list --pool="+poolname+" | grep "+ username
 		child.expect(">")
 		child.sendline(cmd1)
 
@@ -243,6 +243,7 @@ def func_graph_gen(final_dict):
 		s = Source(graph_string, filename="Topology.gv", format="pdf")
 		s.view()
 	except:
+		print "[ERROR] Looks like we encountered an error. We'll see if installing a package fixes it. Please provide your mac password if prompted"
 		var=os.system('''/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"''')
 		var= os.system("brew install graphviz")
 		os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
@@ -270,9 +271,9 @@ def func_graph_gen(final_dict):
 		sys.exit(1)
 
 #LOGICAL MAIN FUNCTION
-def logical_main(usernamelogin, server, password, username):
+def logical_main(usernamelogin, server, password, username, poolname):
 	
-  	var_dutslist= func_listofduts_grabber(usernamelogin,server,password,username) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
+  	var_dutslist= func_listofduts_grabber(usernamelogin,server,password,username, poolname) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
   	func_warning_message() #Will warn users about the list of reasons why the script could fail
   	
   	var_finalconnectiondetails= func_neighbor_generator(var_dutslist) #does the work of grabbing lldp info from all the DUTs, and removing duplicates 
@@ -297,25 +298,32 @@ def main(argv=sys.argv):
 		password=userinput.split('::')[1]
 
 		if password=='': #Covering the corner case wherein :: is given but no password after that
-			print '\n[[ERROR]]: Please give the input in the form of: username@userserver::password [differentuser] \n'
+			print '\n[[ERROR]]: Please give the input in the form of: username@userserver::password [differentuser] [poolname (if not systest pool)]\n'
 			print 'Example in case you need your own topology\t\t: anandgokul@us128::password'
-			print "Example in case you need someone else's topology\t: anandgokul@us128::password jonsnow\n"
+			print "Example in case you need someone else's topology\t: anandgokul@us128::password jonsnow"
+			print "Example in case you need topology in pool otherthan systest pool\t: anandgokul@us128::password anandgokul solutiontest\n"
 			sys.exit(1)
 
 	except IndexError:
-		print '\n[[ERROR]]: Please give the input in the form of: username@userserver::password [differentuser] \n'
+		print '\n[[ERROR]]: Please give the input in the form of: username@userserver::password [differentuser] [poolname (if not systest pool)]\n'
 		print 'Example in case you need your own topology\t\t: anandgokul@us128::password'
-		print "Example in case you need someone else's topology\t: anandgokul@us128::password jonsnow\n"
+		print "Example in case you need someone else's topology\t: anandgokul@us128::password jonsnow"
+		print "Example in case you need topology in pool otherthan systest pool\t: anandgokul@us128::password anandgokul solutiontest\n"
 		sys.exit(1)
 
 	#************************************************************************
 	#handling cases wherein user hasn't provided different user for topology
 	if len(sys.argv) == 2:
 		username=usernamelogin
+		poolname='systest'
 	if len(sys.argv) == 3:
 		username=sys.argv[2]
+		poolname='systest'
+	if len(sys.argv)==4:
+		username=sys.argv[2]
+		poolname=sys.argv[3]
 
-	logical_main(usernamelogin, server, password, username)
+	logical_main(usernamelogin, server, password, username, poolname)
 
 if __name__== "__main__":
 
@@ -324,8 +332,8 @@ if __name__== "__main__":
 	#************************************************************************
 	#The below code will handle error and provide info as to how input should be given
 
-	if len(sys.argv) < 2 or len(sys.argv) > 3: #This kicks in if user hasnt provided even the basic login info, passwored AND if user provided more than required info
-    		sys.stderr.write("Usage:  username@userserver::password [username]\n")
+	if len(sys.argv) < 2 or len(sys.argv) > 4: #This kicks in if user hasnt provided even the basic login info, passwored AND if user provided more than required info
+    		sys.stderr.write("Usage:  username@userserver::password [username] [poolname- default is systest]\n")
     		sys.stderr.write('  <mandatory>  [optional]\n')
     		sys.exit(1)
 
