@@ -11,60 +11,40 @@ import sys
 import os
 import time
 import ConfigParser #For checking input arguments
+import argparse
 from graphviz import Source #Make a topology graph
 import paramiko
 import socket
 from pyeapi import eapilib
 import subprocess
+import textwrap
 
-def func_listofduts_grabber(usernamelogin,server,password,username,poolname):
+def func_list_from_file(username,fileloc):
 	print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
-	print "\t\t\t\t\tNeighbor Details of DUTS in testbed for User '"+username+ "':"
+	print "\t\t\t\t\tList of DUTS as per the file provided is:"
 
-	#*************************************************************************************
-	#The below code will use login to us128 and grab the list of DUTs owned by current user
+	listofdutsasperfile=[]
+	temp=[]
 
-	#The below try-except block will cover exception when user-server is unreachable
-	try:
-		child = pexpect.spawn("ssh "+ usernamelogin+ "@"+server,timeout=120)
-		child.expect("password:")
-		child.sendline(password)
+	file = open(fileloc)
+	listofdutsasperfile = file.readlines()
 
-		cmd1= "Art list --pool="+poolname+" | grep "+ username
-		child.expect(">")
-		child.sendline(cmd1)
+	for i,data in enumerate(listofdutsasperfile):
+		if '#' in data[0]:
+			listofdutsasperfile[i]=None
+	#print listofdutsasperfile
 
-		#Saving the output to duts1
-		child.expect(">")
-		duts1= (child.before)
-		#print duts1
+	for i,data in enumerate(listofdutsasperfile):
+		if data!=None:
+			temp.append(data.strip())
+	#print temp
 
-		#Splitting the output based on newline into list duts2
-		duts2=duts1.strip()
-		duts2= duts2.split("\n")
-		#print duts2
-
-		#Stripping the leading whitespaces in each element of above list. After that saving only the dut name in another list
-		duts3=[]
-		for i in xrange(0, len(duts2)):
-		   duts2[i]=duts2[i].strip()
-		   if i!=0:
-		      duts3.append((duts2[i].split(" "))[0])
-		#print duts3
-
-		#We got only the dut names as list in dut3. But, there is another trash entry at end which needs to be removed. 
-		dutslist=duts3[:-1]
-
-		print "\n \n The DUTs owned by " + username +" are:  " + str(dutslist)
-
-		return dutslist
-	except Exception as e:
-		print "\n Huh...:x :x FAILED: Could not resolve hostname " + server + "- Please verify the server hostname and reachability \n"
-		sys.exit()
+	print str(temp)
+	return temp
 
 def func_listofduts_grabber_NoNeedPassword(username,poolname):
 	print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
-	print "\t\t\t\t\tNeighbor Details of DUTS in testbed for User '"+username+ "':"
+	print "\t\t\t\t\tNeighbor Details of DUTS in Art list output for user '"+username+ "':"
 
 	usernamelogin='anandgokul'
 	server='us128'
@@ -111,6 +91,19 @@ def func_listofduts_grabber_NoNeedPassword(username,poolname):
 		print "\n [ERROR] There was some issue with reaching the user servers. Please fix reachability to Arista Network \n"
 		sys.exit()
 
+def func_excluder(var_dutslist,excluded):
+	print"\n ---------------------------------------------------------------------------------------------------------------------- \n "
+	print "Note: Some devices are marked to be excluded from topology. \n"
+	
+	#Removing the matches using intersections
+	ss= set(var_dutslist)
+	fs =set(excluded)
+
+	finallist= list(ss.union(ss)  - ss.intersection(fs))
+	
+	print "The final DUTs for which Topology will be generated are: "+str(finallist)
+
+	return finallist
 
 def func_warning_message():
 	print"\n ---------------------------------------------------------------------------------------------------------------------- \n "
@@ -320,73 +313,75 @@ def func_graph_gen(final_dict):
 		print "Finished!"
 		sys.exit(1)
 
-#LOGICAL MAIN FUNCTION
-def logical_main(username, poolname):
+#The main function
+def main(username, poolname, fileloc, excluded):
+
 	
-  	var_dutslist= func_listofduts_grabber_NoNeedPassword(username, poolname) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
-  	func_warning_message() #Will warn users about the list of reasons why the script could fail
-  	
-  	var_finalconnectiondetails= func_neighbor_generator(var_dutslist) #does the work of grabbing lldp info from all the DUTs, and removing duplicates 
+
+	#The below part is used to handle cases of username and/or filelocation provided
+	if username==None:
+		print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
+		print ('[INFORMATION]: Username has not been provided. Using file for Topology generation')
+		if fileloc==None:
+				fileloc = os.path.expanduser('~/setup.txt') #Default File location
+				print ('Default file at ~/setup.txt is used since non-default file locaton as not been provided using -f flag')
+		var_dutslist= func_list_from_file(username, fileloc)
+
+	if username!=None and fileloc==None:
+		var_dutslist= func_listofduts_grabber_NoNeedPassword(username, poolname) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
+
+	if fileloc!=None and username!=None:
+		print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
+		print ('[WARNING]: You have provided both a DUTS list file as well as username. Username has higher priority for Topology generation and will be considered. Ignoring the DUT file info...')
+		var_dutslist= func_listofduts_grabber_NoNeedPassword(username, poolname) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
+
+	
+
+	#This is used to remove the excluded DUTs from the topology generation
+	if excluded!=None:
+		var_dutslist=func_excluder(var_dutslist,excluded)
+
+	
+
+	func_warning_message() #Will warn users about the list of reasons why the script could fail
+	  	
+	
+	var_finalconnectiondetails= func_neighbor_generator(var_dutslist) #does the work of grabbing lldp info from all the DUTs, and removing duplicates 
   	#print var_finalconnectiondetails
-  	
-  	func_neighbor_printer(var_finalconnectiondetails)
+	  	
+	func_neighbor_printer(var_finalconnectiondetails)
 
-  	graphrequired = raw_input("Do you need a graphical representation? (Y/n) ")
-  	if graphrequired=='n' or graphrequired=='N':
-  		print 'Finished!'
-  	else:
-  		func_graph_gen(var_finalconnectiondetails) #generates a graphical representation
+	graphrequired = raw_input("Do you need a graphical representation? (Y/n) ")
+	if graphrequired=='n' or graphrequired=='N':
+		print 'Finished!'
+	else:
+		func_graph_gen(var_finalconnectiondetails) #generates a graphical representation
 
-# Intermediate Function between Actual Main and Logical Main
-def main(argv=sys.argv):
 
-	#userinput=sys.argv[1]
-
-	# try:
-	# 	usernamelogin=(userinput.split('@'))[0]
-	# 	server=(userinput.split('@')[1]).split("::")[0]
-	# 	password=userinput.split('::')[1]
-
-	# 	if password=='': #Covering the corner case wherein :: is given but no password after that
-	# 		print '\n[[ERROR]]: Please give the input in the form of: username@userserver::password [differentuser] [poolname (if not systest pool)]\n'
-	# 		print 'Example in case you need your own topology\t\t: anandgokul@us128::password'
-	# 		print "Example in case you need someone else's topology\t: anandgokul@us128::password jonsnow"
-	# 		print "Example in case you need topology in pool otherthan systest pool\t: anandgokul@us128::password anandgokul solutiontest\n"
-	# 		sys.exit(1)
-
-	# except IndexError:
-	# 	print '\n[[ERROR]]: Please give the input in the form of: username@userserver::password [differentuser] [poolname (if not systest pool)]\n'
-	# 	print 'Example in case you need your own topology\t\t: anandgokul@us128::password'
-	# 	print "Example in case you need someone else's topology\t: anandgokul@us128::password jonsnow"
-	# 	print "Example in case you need topology in pool otherthan systest pool\t: anandgokul@us128::password anandgokul solutiontest\n"
-	# 	sys.exit(1)
-
-	#************************************************************************
-	#handling cases wherein user hasn't provided different user for topology
-	if len(sys.argv) == 2:
-		username=sys.argv[1]
-		poolname='systest'
-	if len(sys.argv) == 3:
-		username=sys.argv[1]
-		poolname=sys.argv[2]
-
-	logical_main(username, poolname)
 
 if __name__== "__main__":
 
-  	#Usage: python filename.py loginname@server::password usernamefordetails
+  	#Usage: python filename.py username pool
 
+	# Parsing Options
+    parser = argparse.ArgumentParser(description='Used to generate topology incl. ixia connection by taking username as input',formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('-u', '--user', help="Username of user who's topology is needed")
+    parser.add_argument('-p', '--pool', default='systest', help='Specify the pool for the above user (default = systest)')
+    parser.add_argument('-f', '--file', help='Setup File / DUT List to Load (default = ~/setup.txt)')
+    parser.add_argument('-x', '--exclude',nargs='+', help='Exclude the following DUTs from the my devices list during topology formation')
+    options = parser.parse_args()
+
+
+    # if len(sys.argv)==1:
+    # 	print "[ERROR] Please provide arguments to proceed. Please use -h flag for further help \n"
+    # 	sys.exit(1)
+
+#Assigning the arguments to variables
+username=options.user
+poolname=options.pool
+fileloc=options.file
+excluded=options.exclude
+
+main(username, poolname, fileloc, excluded)
 	#************************************************************************
-	#The below code will handle error and provide info as to how input should be given
-
-	if len(sys.argv) < 2 or len(sys.argv) > 3: #This kicks in if user hasnt provided even the basic login info, passwored AND if user provided more than required info
-    		sys.stderr.write("<username> [poolname- default is systest]\n")
-    		sys.stderr.write('<mandatory>  [optional]\n')
-    		sys.exit(1)
-
-	main(sys.argv)
-
-
-#************************************************************************
-#Sayonara guys! Enjoy the code. Presented to you by one and only anandgokul@
-
+	#Sayonara guys! Enjoy the code. Presented to you by one and only anandgokul@
