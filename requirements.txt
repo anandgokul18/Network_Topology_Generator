@@ -1,5 +1,5 @@
-pexpect
-simplejson
-pyeapi
-graphviz
-paramiko
+pexpect==4.2.1
+simplejson==3.13.2
+pyeapi==0.8.1
+graphviz==0.8
+paramiko==2.2.1
