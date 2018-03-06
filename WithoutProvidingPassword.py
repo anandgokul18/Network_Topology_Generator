@@ -10,6 +10,7 @@ import pyeapi #eApi support
 import sys
 import os
 import time
+import string
 import ConfigParser #For checking input arguments
 import argparse
 from graphviz import Source #Make a topology graph
@@ -272,6 +273,18 @@ def func_graph_gen(final_dict):
 	size="8,5"
 	node [shape = circle];
 	'''
+	
+	#The below block is for handling '-' and '.' being present in DUT name
+	for i in xrange(0,len(final_dict)):
+		if '-' in final_dict[i]['neighborDevice'] or '-' in final_dict[i]['myDevice'] or '.' in final_dict[i]['neighborDevice'] or '.' in final_dict[i]['myDevice']:
+			if '-' in final_dict[i]['neighborDevice'] or '.' in final_dict[i]['neighborDevice']:
+				new_str=string.replace(final_dict[i]['neighborDevice'], '-', '')
+				final_dict[i]['neighborDevice']=new_str
+			if '-' in final_dict[i]['myDevice'] or '.' in final_dict[i]['myDevice']:
+				new_str=string.replace(final_dict[i]['myDevice'], '-', '')
+				final_dict[i]['myDevice']=new_str
+
+	#The below block is for converting the topology to graphviz format
 	for i in xrange(0,len(final_dict)):
 		tempvar=final_dict[i]['neighborDevice'] + ' -> ' + final_dict[i]['myDevice'] + ' [ label = "' + final_dict[i]['neighborPort'] + '---' + final_dict[i]['port'] + '" ]'
 		graph_string=graph_string+tempvar+'\n'
@@ -286,7 +299,9 @@ def func_graph_gen(final_dict):
 		s = Source(graph_string, filename="Topology.gv", format="pdf")
 		s.view()
 	except:
+		print"\n ---------------------------------------------------------------------------------------------------------------------- "
 		print "[ERROR] Looks like we encountered an error. We'll see if installing a package fixes it. Please provide your mac password if prompted"
+		print"---------------------------------------------------------------------------------------------------------------------- "
 		var=os.system('''/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"''')
 		var= os.system("brew install graphviz")
 		os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
