@@ -31,7 +31,7 @@ def func_list_from_file(username,fileloc):
 	listofdutsasperfile = file.readlines()
 
 	for i,data in enumerate(listofdutsasperfile):
-		if '#' in data[0]:
+		if '#' in data[0] or '\n' in data[0]:
 			listofdutsasperfile[i]=None
 	#print listofdutsasperfile
 
@@ -201,7 +201,11 @@ def func_neighbor_generator(dutslist):
 		if grand_diction[i].get('temp')== None:
 			grand_diction[i]['neighborDevice']=grand_diction[i]['neighborDevice'].split('.')[0]
 			grand_diction[i]['myDevice']=grand_diction[i]['myDevice'].split('.')[0]
-			grand_diction[i]['port']='Et'+(grand_diction[i]['port'].split('Ethernet')[1])
+			try:
+				grand_diction[i]['port']='Et'+(grand_diction[i]['port'].split('Ethernet')[1])
+			except:
+				print "[ERROR]: One of your lldp neighbors is not in typical format. Cannot proceed..."
+				sys.exit()
 			grand_diction[i]['neighborPort']='Et'+(grand_diction[i]['neighborPort'].split('Ethernet')[1])
 			final_dict.append(grand_diction[i])
 
@@ -278,10 +282,10 @@ def func_graph_gen(final_dict):
 	for i in xrange(0,len(final_dict)):
 		if '-' in final_dict[i]['neighborDevice'] or '-' in final_dict[i]['myDevice'] or '.' in final_dict[i]['neighborDevice'] or '.' in final_dict[i]['myDevice']:
 			if '-' in final_dict[i]['neighborDevice'] or '.' in final_dict[i]['neighborDevice']:
-				new_str=string.replace(final_dict[i]['neighborDevice'], '-', '')
+				new_str=string.replace(final_dict[i]['neighborDevice'], '-', '_')
 				final_dict[i]['neighborDevice']=new_str
 			if '-' in final_dict[i]['myDevice'] or '.' in final_dict[i]['myDevice']:
-				new_str=string.replace(final_dict[i]['myDevice'], '-', '')
+				new_str=string.replace(final_dict[i]['myDevice'], '-', '_')
 				final_dict[i]['myDevice']=new_str
 
 	#The below block is for converting the topology to graphviz format
@@ -295,6 +299,7 @@ def func_graph_gen(final_dict):
 	print "----------------------------------------------------------------------------"
 	print "Your topology (both .PDF and .GV) has been generated on the current directory"
 	print "There is both a readily-available pdf file as well as a .gv file which can be imported to graphing tools like OmniGraffle for further editing(get license for Omnigraffle from helpdesk..:/\n"
+	print "If your device names contains either '.' or '-', it will be replaced by '_' to avoid conflict with other packages"
 	try:
 		s = Source(graph_string, filename="Topology.gv", format="pdf")
 		s.view()
