@@ -316,21 +316,21 @@ def func_neighbor_printer(final_dict,ixiadict):
 		print final_dict[i]['neighborDevice'] + '\t(' + final_dict[i]['neighborPort'] + ')' + '\t--------------------'  + '\t(' + final_dict[i]['port'] + ')' + final_dict[i]['myDevice']
 
 	print"\n ---------------------------------------------------------------------------------------------------------------------- \n "
-	print "Presented to you by anandgokul. Ping me if any errors/ exceptions are encountered that I missed handling...Sayonara! :D \n \n"
+	#print "Presented to you by anandgokul. Ping me if any errors/ exceptions are encountered that I missed handling...Sayonara! :D \n \n"
 
 
 def func_graph_gen(final_dict):
 
 	#Installing the requirements for graphviz
 	#var= os.system("sudo pip install graphviz")
-	print "\n----------------------------------------------------------------------------"
-	print "Please complete the installation of Xcode Dev Tools (if prompted) via the GUI and rerun this script"
+	#print "\n----------------------------------------------------------------------------"
+	#print "Please complete the installation of Xcode Dev Tools (if prompted) via the GUI and rerun this script"
 	print "Status:"
 	var1= os.system("xcode-select --install")
 	print "----------------------------------------------------------------------------"
 	var= os.system("brew install graphviz")
 
-	os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
+	#os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
 
 	graph_string='''
 	digraph finite_state_machine {	
@@ -358,8 +358,8 @@ def func_graph_gen(final_dict):
 	#print graph_string
 
 	print "----------------------------------------------------------------------------"
-	print "Your topology (both .PDF and .GV) has been generated on the current directory"
-	print "There is both a readily-available pdf file as well as a .gv file which can be imported to graphing tools like OmniGraffle for further editing(get license for Omnigraffle from helpdesk..:/\n"
+	print "Your topology in .PDF and a editable .GV formats has been generated on the current directory"
+	#print "There is both a readily-available pdf file as well as a .gv file which can be imported to graphing tools like OmniGraffle for further editing(get license for Omnigraffle from helpdesk..:/\n"
 	print "If your device names contains either '.' or '-', it will be replaced by '_' to avoid conflict with other packages"
 	try:
 		s = Source(graph_string, filename="Topology.gv", format="pdf")
