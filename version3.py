@@ -395,7 +395,7 @@ def func_graph_gen(final_dict):
 		sys.exit(1)
 
 #The main function
-def main(username, poolname, fileloc, excluded):
+def main(username, poolname, fileloc, graphrequired, excluded):
 
 	
 
@@ -437,9 +437,8 @@ def main(username, poolname, fileloc, excluded):
 
 	func_neighbor_printer(var_finalconnectiondetails, var_ixiadict)
 
-	graphrequired = raw_input("Do you need a graphical representation? (Y/n) ")
-	if graphrequired=='n' or graphrequired=='N':
-		print 'Finished!'
+	if graphrequired=='no' or graphrequired=='n':
+		print 'Finished! Graph not generated due to user choice'
 	else:
 		func_graph_gen(var_finalconnectiondetails) #generates a graphical representation
 
@@ -454,6 +453,7 @@ if __name__== "__main__":
     parser.add_argument('-u', '--user', help="Username of user who's topology is needed")
     parser.add_argument('-p', '--pool', default='systest', help='Specify the pool for the above user (default = systest)')
     parser.add_argument('-f', '--file', help='Setup File / DUT List to Load (default = ~/setup.txt)')
+    parser.add_argument('-g', '--graph', help='mention (yes/no) for graph generation (default = yes)')
     parser.add_argument('-x', '--exclude',nargs='+', help='Exclude the following DUTs from the my devices list during topology formation')
     options = parser.parse_args()
 
@@ -466,8 +466,9 @@ if __name__== "__main__":
 username=options.user
 poolname=options.pool
 fileloc=options.file
+graphrequired=options.graph
 excluded=options.exclude
 
-main(username, poolname, fileloc, excluded)
+main(username, poolname, fileloc, graphrequired, excluded)
 	#************************************************************************
 	#Sayonara guys! Enjoy the code. Presented to you by one and only anandgokul@
