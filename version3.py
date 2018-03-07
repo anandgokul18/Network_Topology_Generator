@@ -108,7 +108,8 @@ def func_excluder(var_dutslist,excluded):
 
 def func_warning_message():
 	print"\n ---------------------------------------------------------------------------------------------------------------------- \n "
-	print "Note: Please ensure that the ports are not shut or errdisabled. Else, they will not be included in your topology. \n"
+	print "Note: Please ensure that the ports are not shut or errdisabled. Else, they will not be included in your topology."
+	print "IMPORTANT NOTE: All non-LLDP supported neighbors (such as linux servers) are also shown as Ixia connections. \n"
 
 def func_neighbor_generator(dutslist):
 	
@@ -262,8 +263,9 @@ def func_ixia(dutslist,var_finalconnectiondetails):
 			if listofconnections[k]!=None:
 				onlyixiaconnections.append(listofconnections[k])
 				ixiadict['neighborDevice']=dutslist[i]
-				ixiadict['neighborPort']=listofconnections[k]
-				ixiadict['myDevice']='Ixia_or_non_LLDPDevice'
+				ixiadict['neighborPort']=('Et'+listofconnections[k].split('Ethernet')[1])
+				#print listofconnections[k]
+				ixiadict['myDevice']='IxiaChassis'
 				ixiadict['port']='Unknown'
 				ixialist.append(ixiadict)
 				#print onlyixiaconnections
