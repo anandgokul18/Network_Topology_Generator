@@ -365,7 +365,8 @@ def func_graph_gen(final_dict):
 	try:
 		s = Source(graph_string, filename="Topology.gv", format="pdf")
 		s.view()
-	except:
+	except Exception as e:
+		print e
 		print"\n ---------------------------------------------------------------------------------------------------------------------- "
 		print "[ERROR] Looks like we encountered an error. We'll see if installing a package fixes it. Please provide your mac password if prompted"
 		print"---------------------------------------------------------------------------------------------------------------------- "
@@ -411,10 +412,8 @@ def func_graph_withchoice(final_dict):
 	graph_string='''
 	digraph finite_state_machine {	
 	node [shape = circle];
-	nodesep=0.6;
 	node [fontsize=11];
-  	graph [overlap = scalexy];
-  	ranksep = "2 "
+	rankdir="LR"
 	'''
 
 	nooflevels=raw_input("Please enter the number of levels in your topology. Eg) Leaf-Spine is 2 levels and Leaf-Spine-Superspine is 3 levels. (Enter a integer:) ")
@@ -450,11 +449,29 @@ def func_graph_withchoice(final_dict):
 		sys.exit(1)
 	#print dictoflevels
 
+
+	#The below block is for handling '-' and '.' being present in DUT name
+	for i in xrange(0,len(final_dict)):
+		if '-' in final_dict[i]['neighborDevice'] or '-' in final_dict[i]['myDevice'] or '.' in final_dict[i]['neighborDevice'] or '.' in final_dict[i]['myDevice']:
+			if '-' in final_dict[i]['neighborDevice'] or '.' in final_dict[i]['neighborDevice']:
+				if '-' in final_dict[i]['neighborDevice']:
+					new_str=string.replace(final_dict[i]['neighborDevice'], '-', '_')
+				if '.' in final_dict[i]['neighborDevice']:
+					new_str=string.replace(final_dict[i]['neighborDevice'], '.', '_')
+				final_dict[i]['neighborDevice']=new_str
+			if '-' in final_dict[i]['myDevice'] or '.' in final_dict[i]['myDevice']:
+				if '-' in final_dict[i]['myDevice']:
+					new_str=string.replace(final_dict[i]['myDevice'], '-', '_')
+				if '.' in final_dict[i]['myDevice']:
+					new_str=string.replace(final_dict[i]['myDevice'], '.', '_')
+				final_dict[i]['myDevice']=new_str
+
+
 	for j in reversed(xrange(1,(int(nooflevels)+1))):
 		graph_string=graph_string+"\n\nsubgraph level"+str(j) +" {"
 		if j==1:
 			graph_string=graph_string+'''
-			rank=same;
+			rank=max;
 			node[style=filled, shape=box,color=green];
 
 			'''
@@ -465,12 +482,22 @@ def func_graph_withchoice(final_dict):
 			'''
 		else:
 			graph_string=graph_string+'''
-			rank=same;
+			rank=min;
 			node[style=filled, shape=box,color=yellow];
 			'''
 
 		#Adding the devices to each level
 		for k in xrange(0,len(dictoflevels[j])):
+
+			#Handling '-' or '.' present in the name
+			if '-' in dictoflevels[j][k] or '.' in dictoflevels[j][k]: 
+				if '-' in dictoflevels[j][k]:
+					new_str=string.replace(dictoflevels[j][k], '-', '_')
+					dictoflevels[j][k]=new_str
+				if '.' in dictoflevels[j][k]:
+					new_str=string.replace(dictoflevels[j][k], '.', '_')
+					dictoflevels[j][k]=new_str
+
 			graph_string=graph_string+dictoflevels[j][k]+";\n"
 
 
@@ -482,16 +509,6 @@ def func_graph_withchoice(final_dict):
 	graph_string=graph_string+'''
 	subgraph connector{
 	'''	
-	
-	#The below block is for handling '-' and '.' being present in DUT name
-	for i in xrange(0,len(final_dict)):
-		if '-' in final_dict[i]['neighborDevice'] or '-' in final_dict[i]['myDevice'] or '.' in final_dict[i]['neighborDevice'] or '.' in final_dict[i]['myDevice']:
-			if '-' in final_dict[i]['neighborDevice'] or '.' in final_dict[i]['neighborDevice']:
-				new_str=string.replace(final_dict[i]['neighborDevice'], '-', '_')
-				final_dict[i]['neighborDevice']=new_str
-			if '-' in final_dict[i]['myDevice'] or '.' in final_dict[i]['myDevice']:
-				new_str=string.replace(final_dict[i]['myDevice'], '-', '_')
-				final_dict[i]['myDevice']=new_str
 
 	#The below block is for converting the topology to graphviz format
 	for i in xrange(0,len(final_dict)):
@@ -500,7 +517,7 @@ def func_graph_withchoice(final_dict):
 		graph_string=graph_string+tempvar+'\n'
 
 	graph_string=graph_string+'}}'
-	#print graph_string
+	print graph_string
 
 	print "----------------------------------------------------------------------------"
 	print "Your topology in .PDF and a editable .GV formats has been generated on the current directory"
