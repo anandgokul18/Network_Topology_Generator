@@ -19,6 +19,7 @@ import socket
 from pyeapi import eapilib
 import subprocess
 import textwrap
+from random import randint
 
 def func_list_from_file(username,fileloc):
 	print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
@@ -265,8 +266,8 @@ def func_ixia(dutslist,var_finalconnectiondetails):
 				ixiadict['neighborDevice']=dutslist[i]
 				ixiadict['neighborPort']=('Et'+listofconnections[k].split('Ethernet')[1])
 				#print listofconnections[k]
-				ixiadict['myDevice']='IxiaChassis'
-				ixiadict['port']='Unknown'
+				ixiadict['myDevice']='Ixia_'+str(randint(0,100))
+				ixiadict['port']='?'
 				ixialist.append(ixiadict)
 				#print onlyixiaconnections
 	
@@ -309,7 +310,7 @@ def func_eapi_enabler(dutname):
 		print "[ERROR]: Device "+dutname +" is unreachable. Please fix it and rerun the script! \n"
 		sys.exit(1)
 
-def func_neighbor_printer(final_dict,ixiadict):
+def func_neighbor_printer(final_dict):
 	#************************************************************************
 	#The below code will print the output in neat format
 	for i in xrange(0,len(final_dict)):
@@ -336,7 +337,7 @@ def func_graph_gen(final_dict):
 	digraph finite_state_machine {	
 	rankdir=LR;
 	size="8,5"
-	node [shape = circle];
+	node [shape = box];
 	'''
 	
 	#The below block is for handling '-' and '.' being present in DUT name
@@ -361,6 +362,152 @@ def func_graph_gen(final_dict):
 	print "Your topology in .PDF and a editable .GV formats has been generated on the current directory"
 	#print "There is both a readily-available pdf file as well as a .gv file which can be imported to graphing tools like OmniGraffle for further editing(get license for Omnigraffle from helpdesk..:/\n"
 	print "If your device names contains either '.' or '-', it will be replaced by '_' to avoid conflict with other packages"
+	try:
+		s = Source(graph_string, filename="Topology.gv", format="pdf")
+		s.view()
+	except:
+		print"\n ---------------------------------------------------------------------------------------------------------------------- "
+		print "[ERROR] Looks like we encountered an error. We'll see if installing a package fixes it. Please provide your mac password if prompted"
+		print"---------------------------------------------------------------------------------------------------------------------- "
+		var=os.system('''/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"''')
+		var= os.system("brew install graphviz")
+		os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
+		s = Source(graph_string, filename="Topology.gv", format="pdf")
+		s.view()
+		
+	try:
+		installationcheckcmd="ls /Applications/ | grep -i OmniGraffle"
+		returned_value = subprocess.call(installationcheckcmd, shell=True)
+
+		if returned_value==1: #That means OmniGraffle is NOT present
+			print "----------------------------------------------------------------------------"
+			print "The PDF file has been generated in current directory! " #Instead of OmniGraffle not installed message
+
+
+		elif returned_value==0: #That means OmniGraffle is present
+			print "----------------------------------------------------------------------------"
+			print "If you have Omnigraffle installed, choose 'Hierarchial' for getting the Topology in editable format."
+			subprocess.call(
+    			["/usr/bin/open", "-W", "-n", "-a", "/Applications/OmniGraffle.app","Topology.gv"]
+    		)
+
+	except:
+		print "Finished!"
+		sys.exit(1)
+
+def func_graph_withchoice(final_dict):
+
+	#Installing the requirements for graphviz
+	#var= os.system("sudo pip install graphviz")
+	#print "\n----------------------------------------------------------------------------"
+	#print "Please complete the installation of Xcode Dev Tools (if prompted) via the GUI and rerun this script"
+	print "Status:"
+	var1= os.system("xcode-select --install")
+	print "----------------------------------------------------------------------------"
+	var= os.system("brew install graphviz")
+
+	#os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
+
+	graph_string='''
+	digraph finite_state_machine {	
+	node [shape = circle];
+	nodesep=0.6;
+	node [fontsize=11];
+  	graph [overlap = scalexy];
+  	ranksep = "2 "
+	'''
+
+	nooflevels=raw_input("Please enter the number of levels in your topology. Eg) Leaf-Spine is 2 levels and Leaf-Spine-Superspine is 3 levels. (Enter a integer:) ")
+
+	alreadyadded=[]
+	dictoflevels={}
+
+	for i in xrange(1,(int(nooflevels)+1)):
+		dictoflevels[i]=[]
+	#print dictoflevels
+
+	try:
+		for i in xrange(0,len(final_dict)):
+			if final_dict[i]['neighborDevice']==final_dict[i]['myDevice']:
+				if final_dict[i]['neighborDevice'] not in alreadyadded:
+					alreadyadded.append(final_dict[i]['neighborDevice'])
+					value=raw_input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+final_dict[i]['neighborDevice'] +": ")
+					dictoflevels[int(value)].append(final_dict[i]['neighborDevice'])
+			else:
+				if final_dict[i]['neighborDevice'] not in alreadyadded:
+					alreadyadded.append(final_dict[i]['neighborDevice'])
+					value=raw_input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+final_dict[i]['neighborDevice'] +": ")
+					dictoflevels[int(value)].append(final_dict[i]['neighborDevice'])
+				if final_dict[i]['myDevice'] not in alreadyadded:
+					if 'Ixia' not in final_dict[i]['myDevice']:
+						alreadyadded.append(final_dict[i]['myDevice'])
+						value=raw_input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+final_dict[i]['myDevice'] +": ")
+						dictoflevels[int(value)].append(final_dict[i]['myDevice'])
+			#print alreadyadded
+		
+	except KeyError as e:
+		print 'The entered value is outside the range of total levels. Please rerun again...'
+		sys.exit(1)
+	#print dictoflevels
+
+	for j in reversed(xrange(1,(int(nooflevels)+1))):
+		graph_string=graph_string+"\n\nsubgraph level"+str(j) +" {"
+		if j==1:
+			graph_string=graph_string+'''
+			rank=same;
+			node[style=filled, shape=box,color=green];
+
+			'''
+		elif j==2:
+			graph_string=graph_string+'''
+			rank=same;
+			node[style=filled, shape=box,color=red];
+			'''
+		else:
+			graph_string=graph_string+'''
+			rank=same;
+			node[style=filled, shape=box,color=yellow];
+			'''
+
+		#Adding the devices to each level
+		for k in xrange(0,len(dictoflevels[j])):
+			graph_string=graph_string+dictoflevels[j][k]+";\n"
+
+
+		graph_string=graph_string+"}"
+
+	#print graph_string
+
+	#The below is generic connector code
+	graph_string=graph_string+'''
+	subgraph connector{
+	'''	
+	
+	#The below block is for handling '-' and '.' being present in DUT name
+	for i in xrange(0,len(final_dict)):
+		if '-' in final_dict[i]['neighborDevice'] or '-' in final_dict[i]['myDevice'] or '.' in final_dict[i]['neighborDevice'] or '.' in final_dict[i]['myDevice']:
+			if '-' in final_dict[i]['neighborDevice'] or '.' in final_dict[i]['neighborDevice']:
+				new_str=string.replace(final_dict[i]['neighborDevice'], '-', '_')
+				final_dict[i]['neighborDevice']=new_str
+			if '-' in final_dict[i]['myDevice'] or '.' in final_dict[i]['myDevice']:
+				new_str=string.replace(final_dict[i]['myDevice'], '-', '_')
+				final_dict[i]['myDevice']=new_str
+
+	#The below block is for converting the topology to graphviz format
+	for i in xrange(0,len(final_dict)):
+		tempvar=final_dict[i]['neighborDevice'] + ' -> ' + final_dict[i]['myDevice'] + ' [ label = "' + final_dict[i]['neighborPort'] + '---' + final_dict[i]['port'] + '",labelfontsize=0.5 ]'
+		#tempvar=final_dict[i]['neighborDevice'] + ' -> ' + final_dict[i]['myDevice'] + ' [ headlabel = "' + final_dict[i]['neighborPort'] + '", taillabel ="' + final_dict[i]['port'] + '",style=dashed ]'
+		graph_string=graph_string+tempvar+'\n'
+
+	graph_string=graph_string+'}}'
+	#print graph_string
+
+	print "----------------------------------------------------------------------------"
+	print "Your topology in .PDF and a editable .GV formats has been generated on the current directory"
+	#print "There is both a readily-available pdf file as well as a .gv file which can be imported to graphing tools like OmniGraffle for further editing(get license for Omnigraffle from helpdesk..:/\n"
+	print "If your device names contains either '.' or '-', it will be replaced by '_' to avoid conflict with other packages"
+	print "\n----------------------------------------------------------------------------"
+	print "Important NOTE: If you get a blank file as output, please verify your choice for device levels. Your choice may have given impossible to comprehend/design for our tool"
 	try:
 		s = Source(graph_string, filename="Topology.gv", format="pdf")
 		s.view()
@@ -430,18 +577,35 @@ def main(username, poolname, fileloc, graphrequired, excluded):
 	var_finalconnectiondetails= func_neighbor_generator(var_dutslist) #does the work of grabbing lldp info from all the DUTs, and removing duplicates 
   	#print var_finalconnectiondetails
 	
-	var_ixiadict= func_ixia(var_dutslist, var_finalconnectiondetails) 
 
-	var_finalconnectiondetails=var_finalconnectiondetails+var_ixiadict
-	#print var_finalconnectiondetails
+  	while True:
+  		choice = raw_input("Do you want to include even ports connected to ixia (this is best effort)? (Y/n) ")
+  		if choice=='n' or choice =='N' or choice=='no':
+  			break
+  		elif choice=='y' or choice =='Y' or choice=='yes':
+			var_ixiadict= func_ixia(var_dutslist, var_finalconnectiondetails) 
+			var_finalconnectiondetails=var_finalconnectiondetails+var_ixiadict
+			#print var_finalconnectiondetails  			
+			break
+  		else:
+  			print ("Please choose one of the above choices")
 
-	func_neighbor_printer(var_finalconnectiondetails, var_ixiadict)
+	
+	func_neighbor_printer(var_finalconnectiondetails)
 
 	if graphrequired=='no' or graphrequired=='n':
 		print 'Finished! Graph not generated due to user choice'
 	else:
-		func_graph_gen(var_finalconnectiondetails) #generates a graphical representation
-
+		while True:
+			choice = raw_input("Do you have a preference for location of DUTs (leaf/spine),...? (Y/n) ")
+			if choice=='n' or choice =='N' or choice=='no':
+				func_graph_gen(var_finalconnectiondetails) #generates a graphical representation with random location of DUTs
+				break
+			elif choice=='y' or choice =='Y' or choice=='yes':
+				func_graph_withchoice(var_finalconnectiondetails) #generates a graphical representation with location levels chosen by user
+				break
+			else:
+				print ("Please choose one of the above choices")
 
 
 if __name__== "__main__":
