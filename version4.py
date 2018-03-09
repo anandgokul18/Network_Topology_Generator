@@ -500,7 +500,7 @@ def func_graph_withchoice(final_dict,interfaceneeded):
 			'''
 		elif j==2:
 			graph_string=graph_string+'''
-			rank=min;
+			rank=same;
 			node[style=filled, shape=box,color=red, fontsize=8];
 			'''
 		else:
