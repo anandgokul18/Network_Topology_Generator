@@ -1,7 +1,9 @@
 # findTestbedTopology.py
 
 Testbed Topology Generator for Arista Internal Users. 
-This script will generate a topology of connections based on the devices given by utilising the LLDP output of those devices.
+This script will generate a topology of connections based on the devices given by utilising the LLDP output of those devices. The user need to have a route to the DUTs from the device on which they are running this script.
+
+By default, the topology will be generated for devices specified in ~/setup.txt. If user needs to generate topology based on username or other file, he/she needs to use the flags.
 
 ### Installation and Requirements
 
@@ -10,19 +12,14 @@ This script will generate a topology of connections based on the devices given b
 2. Then, do a "sudo pip install -r requirements.txt" from that directory
 3. Then, run the script using 'python findTestbedTopology.py [flags]'
 
-### Information Transfer
+### Inputs
 
-ONE THING which users need to ensure is to verify that their DUTs ahve management connectivity from their laptops. If not, please add a route to your Mac on the DUTs. You can verify the connectivity by pinging the devices from your laptop initially.
-
-The below example shows how to verify if you have connectivity...I know, duh, what is he thinking...but this is one major reason why the code fails and I haven't handled the exception due to non-reachability YET!
 ```
-anandgokul:~ anandgokul$ ping co546
-PING co546.sjc.aristanetworks.com (172.24.78.209): 56 data bytes
-64 bytes from 172.24.78.209: icmp_seq=0 ttl=57 time=306.911 ms
-64 bytes from 172.24.78.209: icmp_seq=1 ttl=57 time=329.736 ms
-^C
---- co546.sjc.aristanetworks.com ping statistics ---
-2 packets transmitted, 2 packets received, 0.0% packet loss
-round-trip min/avg/max/stddev = 306.911/318.323/329.736/11.413 ms
-anandgokul:~ anandgokul$
+arguments:
+-f, --file                    Specify a Setup File / DUT List to Load (default = ~/setup.txt)'
+-u, --user                    Specify a Arista username for finding the topology based on rdam info of that user. Note. If                                   both username and file is provided, username will be taken
+-p, --pool                    Specify the pool of the username, if specifying username for getting topology. (default =                                     systest)
+-g, --graph                   Choice for graph generation- yes/no. (default= yes)
+-i, --interface
+-x, --exclude
 ```
