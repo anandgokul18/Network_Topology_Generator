@@ -82,5 +82,7 @@ Do you have a preference for location of DUTs (leaf/spine),...? (Y/n) n
 
 ### Examples
 ```
+generateTestbedTopology.py   <---Generates topology based on file in ~/setup.txt. Will generate a graph and include interfaces.
+generateTestbedTopology.py -f ~/home/anandgokul/newfile.txt <---Generates topology based on file on devices mentioned in this file. Will generate a graph and include interfaces.
 
 ```
