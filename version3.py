@@ -652,4 +652,4 @@ excluded=options.exclude
 
 main(username, poolname, fileloc, graphrequired, excluded)
 	#************************************************************************
-	#Sayonara guys! Enjoy the code. Presented to you by one and only anandgokul@
+	#Sayonara guys! Enjoy the code. Presented to you by one and only @anandgokul
