@@ -211,6 +211,10 @@ def func_neighbor_generator(dutslist):
 			final_dict.append(grand_diction[i])
 
 
+	#Below Code will try to consolidate interfaces in series
+	#for i in xrange(0,len(grand_diction)):
+
+
 	return final_dict
 
 def func_ixia(dutslist,var_finalconnectiondetails):
