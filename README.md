@@ -1,17 +1,14 @@
-# Project Title
+# findTestbedTopology.py
 
-Automatic Topology Generator esp. for Arista Internal Users
+Testbed Topology Generator for Arista Internal Users. 
+This script will generate a topology of connections based on the devices given by utilising the LLDP output of those devices.
 
-## Getting Started
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
-
-### Installation
+### Installation and Requirements
 
 1. In terminal/bash shell, navigate to the directory where you have downloaded this script
 2. Do a 'sudo easy_install pip' to install pip. Skip this step if already installed.
 2. Then, do a "sudo pip install -r requirements.txt" from that directory
-3. Then, run the script using python AutomatedTopologyGenerator.py username@server::password [user]
+3. Then, run the script using 'python findTestbedTopology.py [flags]'
 
 ### Information Transfer
 
