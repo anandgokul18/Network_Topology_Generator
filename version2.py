@@ -404,4 +404,4 @@ excluded=options.exclude
 
 main(username, poolname, fileloc, excluded)
 	#************************************************************************
-	#Sayonara guys! Enjoy the code. Presented to you by one and only @anandgokul
+	#Sayonara guys! Enjoy the code. Presented to you by one and only anandgokul@
