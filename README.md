@@ -71,21 +71,13 @@ ck338	(Et16/2)	--------------------	(unknown)Ixia_87
  ----------------------------------------------------------------------------------------------------------------------
 
 Do you have a preference for location of DUTs (leaf/spine),...? (Y/n) n
-[MESSAGE]
-xcode-select: error: command line tools are already installed, use "Software Update" to install updates
-----------------------------------------------------------------------------
-Error: /usr/local/Cellar is not writable. You should change the
-ownership and permissions of /usr/local/Cellar back to your
-user account:
-  sudo chown -R $(whoami) /usr/local/Cellar
-Warning: graphviz 2.40.1 is already installed
+
 ----------------------------------------------------------------------------
 [MESSAGE] If your device names contains either '.' or '-', it will be replaced by '_' to avoid conflict with other packages
 
-
 > Completed Successfully:
-	 * The PDF file has been generated in current directory and OmniGraffle has been opened to edit it. Please choose 'Hierarchial' in OmniGraffle to edit it.
-* Script Complete!
+	* The PDF file has been generated in current directory and OmniGraffle has been opened to edit it. Please choose 	   'Hierarchial' in OmniGraffle to edit it.
+	* Script Complete!
 ```
 
 ### Examples
