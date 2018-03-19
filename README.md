@@ -82,7 +82,12 @@ Do you have a preference for location of DUTs (leaf/spine),...? (Y/n) n
 
 ### Examples
 ```
-generateTestbedTopology.py   <---Generates topology based on file in ~/setup.txt. Will generate a graph and include interfaces.
-generateTestbedTopology.py -f ~/home/anandgokul/newfile.txt <---Generates topology based on file on devices mentioned in this file. Will generate a graph and include interfaces.
+generateTestbedTopology.py                                        <---Generates topology based on file in ~/setup.txt. Will generate a graph and include interfaces by default since the flags are not overridden.
+generateTestbedTopology.py -f ~/home/anandgokul/newfile.txt       <---Generates topology based on file on devices mentioned in this file. Will generate a graph and include interfaces by default since the flags are not overridden.
+generateTestbedTopology.py -u anandgokul                          <---Generates graph based on devices owned by the user as per rdam. Will generate a graph and include interfaces by default since the flags are not overridden.
+generateTestbedTopology.py -u foo -p solutiontest                 <---Generates graph based on devices owned by the user 'foo' as per rdam. Since the user is not in systest pool, we need to mention the correct pool. Will generate a graph and include interfaces by default since the flags are not overridden.
+
+generateTestbedTopology.py -u anandgokul -x do303 co546           <----Generates graph for user after excluding the devices do303 and co546. These devices may still appear from lldp outputs of neighbors if they are connected to another device in list. But, we won't login to them to gather data.
+
 
 ```
