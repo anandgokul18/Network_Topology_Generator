@@ -1,7 +1,7 @@
 # generateTestbedTopology.py
 
 Testbed Topology Generator for Arista Internal Users. 
-This script will generate a topology of connections based on the devices given by utilising the LLDP output of those devices. The user need to have a route to the DUTs from the device on which they are running this script.
+This script will generate a topology of connections based on the devices given by utilising the LLDP output of those devices using Arista eAPI python library and the Graphviz python library apart from various ssh libraries. The user need to have a route to the DUTs from the device on which they are running this script.
 
 By default, the topology will be generated for devices specified in ~/setup.txt. If user needs to generate topology based on username or other file, he/she needs to use the flags.
 
