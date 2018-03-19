@@ -29,6 +29,7 @@ arguments:
 
 Example using all the flags (except file since username is provided). In actual case, we may not need to use all of them:
 
+```
 anandgokul:scripts anandgokul$ <b>python generateTestbedTopology.py -u anandgokul </b> -p systest -x do303 -g yes -i yes
 
  > Neighbor Details of DUTS in Art list output for user 'anandgokul':
@@ -85,5 +86,9 @@ Warning: graphviz 2.40.1 is already installed
 > Completed Successfully:
 	 * The PDF file has been generated in current directory and OmniGraffle has been opened to edit it. Please choose 'Hierarchial' in OmniGraffle to edit it.
 * Script Complete!
+```
 
 ### Examples
+```
+
+```
