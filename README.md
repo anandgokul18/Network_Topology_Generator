@@ -17,8 +17,8 @@ By default, the topology will be generated for devices specified in ~/setup.txt.
 ```
 arguments:
 -f, --file                    Specify a Setup File / DUT List to Load (default = ~/setup.txt)'
--u, --user                    Specify a Arista username for finding the topology based on rdam info of that user. Note. If                                   both username and file is provided, username will be taken
--p, --pool                    Specify the pool of the username, if specifying username for getting topology. (default =                                     systest)
+-u, --user                    Specify a Arista username for finding the topology based on rdam info of that user. Note. If both username and file is provided, username will be taken
+-p, --pool                    Specify the pool of the username, if specifying username for getting topology. (default= systest)
 -g, --graph                   Choice for graph generation- yes/no. (default= yes)
 -i, --interface
 -x, --exclude
