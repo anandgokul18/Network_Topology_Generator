@@ -20,26 +20,30 @@ import subprocess
 from random import randint
 
 def fileDutList(username,fileloc):
-	print "\n > List of DUTS as per the file provided is:"
+	try:
 
-	listofdutsasperfile=[]
-	temp=[]
+		listofdutsasperfile=[]
+		temp=[]
 
-	file = open(fileloc)
-	listofdutsasperfile = file.readlines()
+		file = open(fileloc)
+		listofdutsasperfile = file.readlines()
 
-	for i,data in enumerate(listofdutsasperfile):
-		if '#' in data[0] or '\n' in data[0]:
-			listofdutsasperfile[i]=None
-	#print listofdutsasperfile
+		for i,data in enumerate(listofdutsasperfile):
+			if '#' in data[0] or '\n' in data[0]:
+				listofdutsasperfile[i]=None
+		#print listofdutsasperfile
 
-	for i,data in enumerate(listofdutsasperfile):
-		if data!=None:
-			temp.append(data.strip())
-	#print temp
+		for i,data in enumerate(listofdutsasperfile):
+			if data!=None:
+				temp.append(data.strip())
+		#print temp
 
-	print "\t * "+str(temp)
-	return temp
+		print "\n > List of DUTS as per the file provided is:"
+		print "\t * "+str(temp)
+		return temp
+	except IOError:
+		print "\n[ERROR]: File does not exist in "+fileloc+" . Please ensure correct file location to proceed \n"
+		sys.exit(1)
 
 def userDutList(username,poolname):
 	print "\n > Neighbor Details of DUTS in Art list output for user '"+username+ "':"
@@ -116,7 +120,7 @@ def lldpInfoGrabberAndOutputGenerator(dutslist):
 #The below code will grab lldp info from all DUTs in json format and refine it and
 #it will consolidate all the lldp information into a single dictionary
 
-	grand_diction=[]
+	tempDictOfConnections=[]
 
   	#The below try and except block will handle errors due to eAPI not enabled on one of the DUT
 	for i in xrange(0,len(dutslist)):
@@ -132,11 +136,11 @@ def lldpInfoGrabberAndOutputGenerator(dutslist):
 		   for j in xrange(0,len(allneighbors)):
 		   	temp_diction = allneighbors[j]
 		   	temp_diction['myDevice']=str(dutslist[i])+'.sjc.aristanetworks.com'
-		   	grand_diction.append(temp_diction)
+		   	tempDictOfConnections.append(temp_diction)
 		   	#print temp_diction
 
-		   grand_diction = grand_diction[:-1]
-		   #print grand_diction	
+		   tempDictOfConnections = tempDictOfConnections[:-1]
+		   #print tempDictOfConnections	
 
 		except pyeapi.eapilib.ConnectionError as e:
 	  		print "\n[Please Wait]: eApi is not enabled on one of your devices namely:<-- "+dutslist[i]+"-->. Hold on while we do that for you \n"
@@ -155,12 +159,12 @@ def lldpInfoGrabberAndOutputGenerator(dutslist):
 				for j in xrange(0,len(allneighbors)):
 					temp_diction = allneighbors[j]
 					temp_diction['myDevice']=str(dutslist[i])+'.sjc.aristanetworks.com'
-					grand_diction.append(temp_diction)
+					tempDictOfConnections.append(temp_diction)
 				#print temp_diction
 
-				grand_diction = grand_diction[:-1]
+				tempDictOfConnections = tempDictOfConnections[:-1]
 
-				#print grand_diction
+				#print tempDictOfConnections
 
 			except:
 				print "[ERROR] Enabling eApi automatically failed. Please enable eApi manually on "+dutslist[i]+ " by doing 'management api http-commands' --> 'no shut' and then rerun the script"
@@ -170,8 +174,8 @@ def lldpInfoGrabberAndOutputGenerator(dutslist):
 	#************************************************************************
 	#The below code will remove the duplicates from the grand dictionary such that one connection shows up only once. The duplicates are marked as key=temp and value=NULL
 
-	for i in xrange(0,len(grand_diction)):
-		tempvar= grand_diction[i] #Storing each dictionary in one temp variable
+	for i in xrange(0,len(tempDictOfConnections)):
+		tempvar= tempDictOfConnections[i] #Storing each dictionary in one temp variable
 		#print tempvar
 		#print '\n'
 		instantaneoustempvar= []
@@ -183,39 +187,39 @@ def lldpInfoGrabberAndOutputGenerator(dutslist):
 		#print tempvar
 
 		count=0
-		for j in xrange(0,len(grand_diction)):
-			if tempvar == grand_diction[j]:
+		for j in xrange(0,len(tempDictOfConnections)):
+			if tempvar == tempDictOfConnections[j]:
 				count=count+1
 
 		if count==2:
-			grand_diction[i]={'temp':'Null'}
+			tempDictOfConnections[i]={'temp':'Null'}
 
-	#print grand_diction
+	#print tempDictOfConnections
 
 	#************************************************************************
 	#The below code will remove the duplicates completely by removing dictionaries with key as temp. ALso, removing the '.sjc.aristanetworks.com' in DUT name
 
-	final_dict=[] #This list will have only non-duplicate values
+	dictionaryOfConnections=[] #This list will have only non-duplicate values
 
-	for i in xrange(0,len(grand_diction)):
-		if grand_diction[i].get('temp')== None:
-			grand_diction[i]['neighborDevice']=grand_diction[i]['neighborDevice'].split('.')[0]
-			grand_diction[i]['myDevice']=grand_diction[i]['myDevice'].split('.')[0]
+	for i in xrange(0,len(tempDictOfConnections)):
+		if tempDictOfConnections[i].get('temp')== None:
+			tempDictOfConnections[i]['neighborDevice']=tempDictOfConnections[i]['neighborDevice'].split('.')[0]
+			tempDictOfConnections[i]['myDevice']=tempDictOfConnections[i]['myDevice'].split('.')[0]
 			try:
-				grand_diction[i]['port']='Et'+(grand_diction[i]['port'].split('Ethernet')[1])
+				tempDictOfConnections[i]['port']='Et'+(tempDictOfConnections[i]['port'].split('Ethernet')[1])
 			except:
 				print "[ERROR]: One of your lldp neighbors is not in typical format. Read above LLDP Warning on how to fix it and then rerun the script"
 				print "* Script Complete!"
 				sys.exit(1)
-			grand_diction[i]['neighborPort']='Et'+(grand_diction[i]['neighborPort'].split('Ethernet')[1])
-			final_dict.append(grand_diction[i])
+			tempDictOfConnections[i]['neighborPort']='Et'+(tempDictOfConnections[i]['neighborPort'].split('Ethernet')[1])
+			dictionaryOfConnections.append(tempDictOfConnections[i])
 
 
 	#Below Code will try to consolidate interfaces in series
-	#for i in xrange(0,len(grand_diction)):
+	#for i in xrange(0,len(tempDictOfConnections)):
 
 
-	return final_dict
+	return dictionaryOfConnections
 
 def ixiaConnectionDetailGrabber(dutslist,finalConnectionDetails):
 	
@@ -316,18 +320,18 @@ def func_eapi_enabler(dutname):
 		print "* Script Complete!"
 		sys.exit(1)
 
-def printToCli(final_dict):
+def printToCli(dictionaryOfConnections):
 	#************************************************************************
 	#The below code will print the output in neat format
 	print "\n> The topology in text format is: "
-	for i in xrange(0,len(final_dict)):
-		print final_dict[i]['neighborDevice'] + '\t(' + final_dict[i]['neighborPort'] + ')' + '\t--------------------'  + '\t(' + final_dict[i]['port'] + ')' + final_dict[i]['myDevice']
+	for i in xrange(0,len(dictionaryOfConnections)):
+		print dictionaryOfConnections[i]['neighborDevice'] + '\t(' + dictionaryOfConnections[i]['neighborPort'] + ')' + '\t--------------------'  + '\t(' + dictionaryOfConnections[i]['port'] + ')' + dictionaryOfConnections[i]['myDevice']
 
 	print"\n ---------------------------------------------------------------------------------------------------------------------- \n "
 	#print "Presented to you by anandgokul. Ping me if any errors/ exceptions are encountered that I missed handling...Sayonara! :D \n \n"
 
 
-def func_graph_gen(final_dict, intfInfo):
+def func_graph_gen(dictionaryOfConnections, intfInfo):
 
 	#Installing the requirements for graphviz
 	#var= os.system("sudo pip install graphviz")
@@ -340,7 +344,7 @@ def func_graph_gen(final_dict, intfInfo):
 
 	#os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
 
-	if len(final_dict)>20:
+	if len(dictionaryOfConnections)>20:
 		graph_string='''
 		digraph finite_state_machine {	
 		size="8,5"
@@ -348,7 +352,7 @@ def func_graph_gen(final_dict, intfInfo):
 		rankdir="LR"
 
 		'''
-	if len(final_dict)<=20:
+	if len(dictionaryOfConnections)<=20:
 		graph_string='''
 		digraph finite_state_machine {	
 		size="8,5"
@@ -357,21 +361,21 @@ def func_graph_gen(final_dict, intfInfo):
 		'''	
 	
 	#The below block is for handling '-' and '.' being present in DUT name
-	for i in xrange(0,len(final_dict)):
-		if '-' in final_dict[i]['neighborDevice'] or '-' in final_dict[i]['myDevice'] or '.' in final_dict[i]['neighborDevice'] or '.' in final_dict[i]['myDevice']:
-			if '-' in final_dict[i]['neighborDevice'] or '.' in final_dict[i]['neighborDevice']:
-				new_str=string.replace(final_dict[i]['neighborDevice'], '-', '_')
-				final_dict[i]['neighborDevice']=new_str
-			if '-' in final_dict[i]['myDevice'] or '.' in final_dict[i]['myDevice']:
-				new_str=string.replace(final_dict[i]['myDevice'], '-', '_')
-				final_dict[i]['myDevice']=new_str
+	for i in xrange(0,len(dictionaryOfConnections)):
+		if '-' in dictionaryOfConnections[i]['neighborDevice'] or '-' in dictionaryOfConnections[i]['myDevice'] or '.' in dictionaryOfConnections[i]['neighborDevice'] or '.' in dictionaryOfConnections[i]['myDevice']:
+			if '-' in dictionaryOfConnections[i]['neighborDevice'] or '.' in dictionaryOfConnections[i]['neighborDevice']:
+				new_str=string.replace(dictionaryOfConnections[i]['neighborDevice'], '-', '_')
+				dictionaryOfConnections[i]['neighborDevice']=new_str
+			if '-' in dictionaryOfConnections[i]['myDevice'] or '.' in dictionaryOfConnections[i]['myDevice']:
+				new_str=string.replace(dictionaryOfConnections[i]['myDevice'], '-', '_')
+				dictionaryOfConnections[i]['myDevice']=new_str
 
 	#The below block is for converting the topology to graphviz format
-	for i in xrange(0,len(final_dict)):
+	for i in xrange(0,len(dictionaryOfConnections)):
 		if intfInfo=='yes':
-			tempvar=final_dict[i]['neighborDevice'] + ' -> ' + final_dict[i]['myDevice'] + ' [ label = "' + final_dict[i]['neighborPort'] + '---' + final_dict[i]['port'] + '" ]'
+			tempvar=dictionaryOfConnections[i]['neighborDevice'] + ' -> ' + dictionaryOfConnections[i]['myDevice'] + ' [ label = "' + dictionaryOfConnections[i]['neighborPort'] + '---' + dictionaryOfConnections[i]['port'] + '" ]'
 		else:
-			tempvar=final_dict[i]['neighborDevice'] + ' -> ' + final_dict[i]['myDevice']
+			tempvar=dictionaryOfConnections[i]['neighborDevice'] + ' -> ' + dictionaryOfConnections[i]['myDevice']
 		graph_string=graph_string+tempvar+'\n'
 
 	graph_string=graph_string+'}'
@@ -414,7 +418,7 @@ def func_graph_gen(final_dict, intfInfo):
 		print "* Script Complete!"
 		sys.exit(1)
 
-def func_graph_withchoice(final_dict,intfInfo):
+def func_graph_withchoice(dictionaryOfConnections,intfInfo):
 
 	#Installing the requirements for graphviz
 	#var= os.system("sudo pip install graphviz")
@@ -427,7 +431,7 @@ def func_graph_withchoice(final_dict,intfInfo):
 
 	#os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
 
-	if len(final_dict)>20:
+	if len(dictionaryOfConnections)>20:
 		graph_string='''
 		digraph finite_state_machine {	
 		splines=true;
@@ -436,7 +440,7 @@ def func_graph_withchoice(final_dict,intfInfo):
 		rankdir="LR"
 		'''
 
-	if len(final_dict)<=20:
+	if len(dictionaryOfConnections)<=20:
 		graph_string='''
 		digraph finite_state_machine {	
 		splines=true;
@@ -454,22 +458,22 @@ def func_graph_withchoice(final_dict,intfInfo):
 	#print dictoflevels
 
 	try:
-		for i in xrange(0,len(final_dict)):
-			if final_dict[i]['neighborDevice']==final_dict[i]['myDevice']:
-				if final_dict[i]['neighborDevice'] not in alreadyadded:
-					alreadyadded.append(final_dict[i]['neighborDevice'])
-					value=raw_input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+final_dict[i]['neighborDevice'] +": ")
-					dictoflevels[int(value)].append(final_dict[i]['neighborDevice'])
+		for i in xrange(0,len(dictionaryOfConnections)):
+			if dictionaryOfConnections[i]['neighborDevice']==dictionaryOfConnections[i]['myDevice']:
+				if dictionaryOfConnections[i]['neighborDevice'] not in alreadyadded:
+					alreadyadded.append(dictionaryOfConnections[i]['neighborDevice'])
+					value=raw_input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+dictionaryOfConnections[i]['neighborDevice'] +": ")
+					dictoflevels[int(value)].append(dictionaryOfConnections[i]['neighborDevice'])
 			else:
-				if final_dict[i]['neighborDevice'] not in alreadyadded:
-					alreadyadded.append(final_dict[i]['neighborDevice'])
-					value=raw_input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+final_dict[i]['neighborDevice'] +": ")
-					dictoflevels[int(value)].append(final_dict[i]['neighborDevice'])
-				if final_dict[i]['myDevice'] not in alreadyadded:
-					if 'Ixia' not in final_dict[i]['myDevice']:
-						alreadyadded.append(final_dict[i]['myDevice'])
-						value=raw_input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+final_dict[i]['myDevice'] +": ")
-						dictoflevels[int(value)].append(final_dict[i]['myDevice'])
+				if dictionaryOfConnections[i]['neighborDevice'] not in alreadyadded:
+					alreadyadded.append(dictionaryOfConnections[i]['neighborDevice'])
+					value=raw_input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+dictionaryOfConnections[i]['neighborDevice'] +": ")
+					dictoflevels[int(value)].append(dictionaryOfConnections[i]['neighborDevice'])
+				if dictionaryOfConnections[i]['myDevice'] not in alreadyadded:
+					if 'Ixia' not in dictionaryOfConnections[i]['myDevice']:
+						alreadyadded.append(dictionaryOfConnections[i]['myDevice'])
+						value=raw_input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+dictionaryOfConnections[i]['myDevice'] +": ")
+						dictoflevels[int(value)].append(dictionaryOfConnections[i]['myDevice'])
 			#print alreadyadded
 		
 	except KeyError as e:
@@ -480,20 +484,20 @@ def func_graph_withchoice(final_dict,intfInfo):
 
 
 	#The below block is for handling '-' and '.' being present in DUT name
-	for i in xrange(0,len(final_dict)):
-		if '-' in final_dict[i]['neighborDevice'] or '-' in final_dict[i]['myDevice'] or '.' in final_dict[i]['neighborDevice'] or '.' in final_dict[i]['myDevice']:
-			if '-' in final_dict[i]['neighborDevice'] or '.' in final_dict[i]['neighborDevice']:
-				if '-' in final_dict[i]['neighborDevice']:
-					new_str=string.replace(final_dict[i]['neighborDevice'], '-', '_')
-				if '.' in final_dict[i]['neighborDevice']:
-					new_str=string.replace(final_dict[i]['neighborDevice'], '.', '_')
-				final_dict[i]['neighborDevice']=new_str
-			if '-' in final_dict[i]['myDevice'] or '.' in final_dict[i]['myDevice']:
-				if '-' in final_dict[i]['myDevice']:
-					new_str=string.replace(final_dict[i]['myDevice'], '-', '_')
-				if '.' in final_dict[i]['myDevice']:
-					new_str=string.replace(final_dict[i]['myDevice'], '.', '_')
-				final_dict[i]['myDevice']=new_str
+	for i in xrange(0,len(dictionaryOfConnections)):
+		if '-' in dictionaryOfConnections[i]['neighborDevice'] or '-' in dictionaryOfConnections[i]['myDevice'] or '.' in dictionaryOfConnections[i]['neighborDevice'] or '.' in dictionaryOfConnections[i]['myDevice']:
+			if '-' in dictionaryOfConnections[i]['neighborDevice'] or '.' in dictionaryOfConnections[i]['neighborDevice']:
+				if '-' in dictionaryOfConnections[i]['neighborDevice']:
+					new_str=string.replace(dictionaryOfConnections[i]['neighborDevice'], '-', '_')
+				if '.' in dictionaryOfConnections[i]['neighborDevice']:
+					new_str=string.replace(dictionaryOfConnections[i]['neighborDevice'], '.', '_')
+				dictionaryOfConnections[i]['neighborDevice']=new_str
+			if '-' in dictionaryOfConnections[i]['myDevice'] or '.' in dictionaryOfConnections[i]['myDevice']:
+				if '-' in dictionaryOfConnections[i]['myDevice']:
+					new_str=string.replace(dictionaryOfConnections[i]['myDevice'], '-', '_')
+				if '.' in dictionaryOfConnections[i]['myDevice']:
+					new_str=string.replace(dictionaryOfConnections[i]['myDevice'], '.', '_')
+				dictionaryOfConnections[i]['myDevice']=new_str
 
 
 	for j in reversed(xrange(1,(int(nooflevels)+1))):
@@ -540,11 +544,11 @@ def func_graph_withchoice(final_dict,intfInfo):
 	'''	
 
 	#The below block is for converting the topology to graphviz format
-	for i in xrange(0,len(final_dict)):
+	for i in xrange(0,len(dictionaryOfConnections)):
 		if intfInfo=='yes':
-			tempvar=final_dict[i]['neighborDevice'] + ' -> ' + final_dict[i]['myDevice'] + ' [ label = "' + final_dict[i]['neighborPort'] + '---' + final_dict[i]['port'] + '",labelfontsize=0.5 ]'
+			tempvar=dictionaryOfConnections[i]['neighborDevice'] + ' -> ' + dictionaryOfConnections[i]['myDevice'] + ' [ label = "' + dictionaryOfConnections[i]['neighborPort'] + '---' + dictionaryOfConnections[i]['port'] + '",labelfontsize=0.5 ]'
 		else:
-			tempvar=final_dict[i]['neighborDevice'] + ' -> ' + final_dict[i]['myDevice']		
+			tempvar=dictionaryOfConnections[i]['neighborDevice'] + ' -> ' + dictionaryOfConnections[i]['myDevice']		
 		graph_string=graph_string+tempvar+'\n'
 
 	graph_string=graph_string+'}}'
@@ -599,7 +603,7 @@ def main(username, poolname, fileloc, graphrequired, intfInfo, excluded, choice)
 		print ('[MESSAGE]: Username has not been provided. Using file for Topology generation')
 		if fileloc==None:
 				fileloc = os.path.expanduser('~/setup.txt') #Default File location
-				print ('Default file at ~/setup.txt is used since non-default file locaton as not been provided using -f flag')
+				print ('[MESSAGE]: Default file at ~/setup.txt is used since non-default file locaton as not been provided using -f flag')
 		finalListOfDuts= fileDutList(username, fileloc)
 
 	elif username!=None:
@@ -657,8 +661,6 @@ def main(username, poolname, fileloc, graphrequired, intfInfo, excluded, choice)
 
 if __name__== "__main__":
 
-  	#Usage: python filename.py username pool
-
 	# Parsing Options
     parser = argparse.ArgumentParser(description='Used to generate topology incl. ixia connection by taking username as input',formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-u', '--user', help="Username of user who's topology is needed")
@@ -669,11 +671,6 @@ if __name__== "__main__":
     parser.add_argument('-n', '--interfaceinfo', default='yes', help='mention (yes/no) whether you need the interface names in topology(default = yes)')
     parser.add_argument('-x', '--exclude',nargs='+', help='Exclude the following DUTs during topology formation')
     options = parser.parse_args()
-
-
-    # if len(sys.argv)==1:
-    # 	print "[ERROR] Please provide arguments to proceed. Please use -h flag for further help \n"
-    # 	sys.exit(1)
 
 #Assigning the arguments to variables
 username=options.user
