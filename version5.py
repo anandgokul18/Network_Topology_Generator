@@ -637,7 +637,7 @@ def main(username, poolname, fileloc, graphrequired, intfInfo, excluded, choice)
 	
 
   	#This is used to include Ixia Connections as well based on user flag for ixia
-	if choice==('n' or 'N' or 'no'):
+	if choice=='n' or choice=='N' or choice=='no':
 		finalConnectionDetails=finalConnectionDetails	
 	else:
 		listOfIxiaConnections= ixiaConnectionDetailGrabber(finalListOfDuts, finalConnectionDetails) 
@@ -649,16 +649,16 @@ def main(username, poolname, fileloc, graphrequired, intfInfo, excluded, choice)
 
 	printConnectionsToScreen(finalConnectionDetails)
 
-	if graphrequired==('no' or 'n'):
+	if graphrequired=='no' or graphrequired=='n':
 		print 'Graph not generated due to user choice'
 		print '* Script Complete!'
 	else:
 		while True:
 			choice = raw_input("Do you have a preference for location of DUTs (leaf/spine),...? (Y/n) ")
-			if choice==('n' or 'N' or 'no'):
+			if choice=='n' or choice=='N' or choice=='no':
 				automaticGraphGenerator(finalConnectionDetails, intfInfo) #generates a graphical representation with random location of DUTs
 				break
-			elif choice==('y' or 'Y' or 'yes'):
+			elif choice=='y' or choice=='Y' or choice=='yes':
 				graphGeneratorwithLeafSpine(finalConnectionDetails, intfInfo) #generates a graphical representation with location levels chosen by user
 				break
 			else:
