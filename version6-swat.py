@@ -307,16 +307,13 @@ def printConnectionsToScreen(dictionaryOfConnections):
 	#print "Presented to you by anandgokul. Ping me if any errors/ exceptions are encountered that I missed handling...Sayonara! :D \n \n"
 
 
-def func_graph_gen(dictionaryOfConnections, intfInfo):
+def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 
-	#Installing the requirements for graphviz
-	#var= os.system("sudo pip install graphviz")
-	#print "\n----------------------------------------------------------------------------"
-	#print "Please complete the installation of Xcode Dev Tools (if prompted) via the GUI and rerun this script"
-	print "[MESSAGE]"
-	var1= os.system("xcode-select --install")
+	print "[MESSAGE] Ignore on Linux. On macOS, ignore unless prompted for Xcode tools installation:"
 	print "----------------------------------------------------------------------------"
+	var1= os.system("xcode-select --install")
 	var= os.system("brew install graphviz")
+	print "----------------------------------------------------------------------------"
 
 	#os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
 
@@ -394,7 +391,7 @@ def func_graph_gen(dictionaryOfConnections, intfInfo):
 		print "* Script Complete!"
 		sys.exit(1)
 
-def func_graph_withchoice(dictionaryOfConnections,intfInfo):
+def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 
 	#Installing the requirements for graphviz
 	#var= os.system("sudo pip install graphviz")
@@ -485,10 +482,16 @@ def func_graph_withchoice(dictionaryOfConnections,intfInfo):
 
 			'''
 		elif j==2:
-			graph_string=graph_string+'''
-			rank=same;
-			node[style=filled, shape=box,color=red, fontsize=8];
-			'''
+			if int(nooflevels)==2:
+				graph_string=graph_string+'''
+				rank=min;
+				node[style=filled, shape=box,color=red, fontsize=8];
+				'''
+			else:
+				graph_string=graph_string+'''
+				rank=same;
+				node[style=filled, shape=box,color=red, fontsize=8];
+				'''				
 		else:
 			graph_string=graph_string+'''
 			rank=min;
@@ -626,10 +629,10 @@ def main(username, poolname, fileloc, graphrequired, intfInfo, excluded, choice)
 		while True:
 			choice = raw_input("Do you have a preference for location of DUTs (leaf/spine),...? (Y/n) ")
 			if choice==('n' or 'N' or 'no'):
-				func_graph_gen(finalConnectionDetails, intfInfo) #generates a graphical representation with random location of DUTs
+				automaticGraphGenerator(finalConnectionDetails, intfInfo) #generates a graphical representation with random location of DUTs
 				break
 			elif choice==('y' or 'Y' or 'yes'):
-				func_graph_withchoice(finalConnectionDetails, intfInfo) #generates a graphical representation with location levels chosen by user
+				graphGeneratorwithLeafSpine(finalConnectionDetails, intfInfo) #generates a graphical representation with location levels chosen by user
 				break
 			else:
 				print ("Please choose one of the above choices")
