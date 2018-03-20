@@ -3,7 +3,7 @@
 
 #!/usr/bin/python
 
-#PREREQUISITES: Below python libraries must be installed on the computer, eapi must be enabled on the DUTS, the DUTs must have management connectivity from the computer
+#Generic Prerequisites
 import pexpect #SSH library with expect support
 import json #Output of eApi needs to be parsed
 import pyeapi #eApi support
@@ -11,17 +11,15 @@ import sys
 import os
 import time
 import string
-import ConfigParser #For checking input arguments
 import argparse
 from graphviz import Source #Make a topology graph
 import paramiko
 import socket
 from pyeapi import eapilib
 import subprocess
-import textwrap
 from random import randint
 
-def func_list_from_file(username,fileloc):
+def fileDutList(username,fileloc):
 	print "\n > List of DUTS as per the file provided is:"
 
 	listofdutsasperfile=[]
@@ -43,7 +41,7 @@ def func_list_from_file(username,fileloc):
 	print "\t * "+str(temp)
 	return temp
 
-def func_listofduts_grabber_NoNeedPassword(username,poolname):
+def userDutList(username,poolname):
 	print "\n > Neighbor Details of DUTS in Art list output for user '"+username+ "':"
 
 	usernamelogin='anandgokul'
@@ -92,9 +90,9 @@ def func_listofduts_grabber_NoNeedPassword(username,poolname):
 		print "* Script Complete!"
 		sys.exit()
 
-def func_excluder(var_dutslist,excluded):
+def excludeDutsFromList(finalListOfDuts,excluded):
 	#Removing the matches using intersections
-	ss= set(var_dutslist)
+	ss= set(finalListOfDuts)
 	fs =set(excluded)
 
 	finallist= list(ss.union(ss)  - ss.intersection(fs))
@@ -104,15 +102,15 @@ def func_excluder(var_dutslist,excluded):
 
 	return finallist
 
-def func_warning_message():
+def warningMessage():
 	print"\n !!! INFORMATIONAL WARNING !!! "
 	print "This script will not include interfaces that are shut or errdisabled. If you need to include even those, make sure they are Up."
 	print"\n !!! LLDP WARNING !!! "
-	print "This script assumes that all lldp devices are shown in typical format of 'hostname' or 'hostname.sjc.aristanetworks.com'. Untypical lldp info such as mac address will give out unsupported error, please address it if you are shown that error."
+	print "This script assumes that all lldp devices are shown in typical format of 'hostname.sjc.aristanetworks.com'. Untypical lldp info such as mac address will give out unsupported error, please address it if you are shown that error."
 	print"\n !!! OUTPUT WARNING !!! "
 	print "This script will consider all non-LLDP supported neighbors (such as linux servers) as Ixia connections only. \n"
 
-def func_neighbor_generator(dutslist):
+def lldpInfoGrabberAndOutputGenerator(dutslist):
 	
 #************************************************************************
 #The below code will grab lldp info from all DUTs in json format and refine it and
@@ -219,13 +217,13 @@ def func_neighbor_generator(dutslist):
 
 	return final_dict
 
-def func_ixia(dutslist,var_finalconnectiondetails):
+def ixiaConnectionDetailGrabber(dutslist,finalConnectionDetails):
 	
 #************************************************************************
 #The below code will grab lldp info from all DUTs in json format and refine it and
 #it will consolidate all the lldp information into a single dictionary
 
-	#print var_finalconnectiondetails
+	#print finalConnectionDetails
 
 	ixialist=[]
 
@@ -250,16 +248,16 @@ def func_ixia(dutslist,var_finalconnectiondetails):
 			#print listofconnections[k]
 
 		#Removing lldp interfaces from ixia interfaces
-		for j in xrange(0,len(var_finalconnectiondetails)):
-			#print var_finalconnectiondetails[i]
-		   	if var_finalconnectiondetails[j]['neighborDevice'] or var_finalconnectiondetails[j]['myDevice']==dutslist[i]:
-		   		if var_finalconnectiondetails[j]['neighborDevice']==dutslist[i]:
+		for j in xrange(0,len(finalConnectionDetails)):
+			#print finalConnectionDetails[i]
+		   	if finalConnectionDetails[j]['neighborDevice'] or finalConnectionDetails[j]['myDevice']==dutslist[i]:
+		   		if finalConnectionDetails[j]['neighborDevice']==dutslist[i]:
 		   			for k in xrange(0,len(listofconnections)):
-		   				if listofconnections[k]==('Ethernet'+var_finalconnectiondetails[j]['neighborPort'].split('Et')[1]):
+		   				if listofconnections[k]==('Ethernet'+finalConnectionDetails[j]['neighborPort'].split('Et')[1]):
 		   					listofconnections[k]=None
-		   		if var_finalconnectiondetails[j]['myDevice']==dutslist[i]:
+		   		if finalConnectionDetails[j]['myDevice']==dutslist[i]:
 		   			for k in xrange(0,len(listofconnections)):
-		   				if listofconnections[k]==('Ethernet'+var_finalconnectiondetails[j]['port'].split('Et')[1]):
+		   				if listofconnections[k]==('Ethernet'+finalConnectionDetails[j]['port'].split('Et')[1]):
 		   					listofconnections[k]=None
 		
 		#print listofconnections
@@ -318,7 +316,7 @@ def func_eapi_enabler(dutname):
 		print "* Script Complete!"
 		sys.exit(1)
 
-def func_neighbor_printer(final_dict):
+def printToCli(final_dict):
 	#************************************************************************
 	#The below code will print the output in neat format
 	print "\n> The topology in text format is: "
@@ -329,7 +327,7 @@ def func_neighbor_printer(final_dict):
 	#print "Presented to you by anandgokul. Ping me if any errors/ exceptions are encountered that I missed handling...Sayonara! :D \n \n"
 
 
-def func_graph_gen(final_dict, interfaceneeded):
+def func_graph_gen(final_dict, intfInfo):
 
 	#Installing the requirements for graphviz
 	#var= os.system("sudo pip install graphviz")
@@ -370,7 +368,7 @@ def func_graph_gen(final_dict, interfaceneeded):
 
 	#The below block is for converting the topology to graphviz format
 	for i in xrange(0,len(final_dict)):
-		if interfaceneeded=='yes':
+		if intfInfo=='yes':
 			tempvar=final_dict[i]['neighborDevice'] + ' -> ' + final_dict[i]['myDevice'] + ' [ label = "' + final_dict[i]['neighborPort'] + '---' + final_dict[i]['port'] + '" ]'
 		else:
 			tempvar=final_dict[i]['neighborDevice'] + ' -> ' + final_dict[i]['myDevice']
@@ -416,7 +414,7 @@ def func_graph_gen(final_dict, interfaceneeded):
 		print "* Script Complete!"
 		sys.exit(1)
 
-def func_graph_withchoice(final_dict,interfaceneeded):
+def func_graph_withchoice(final_dict,intfInfo):
 
 	#Installing the requirements for graphviz
 	#var= os.system("sudo pip install graphviz")
@@ -543,7 +541,7 @@ def func_graph_withchoice(final_dict,interfaceneeded):
 
 	#The below block is for converting the topology to graphviz format
 	for i in xrange(0,len(final_dict)):
-		if interfaceneeded=='yes':
+		if intfInfo=='yes':
 			tempvar=final_dict[i]['neighborDevice'] + ' -> ' + final_dict[i]['myDevice'] + ' [ label = "' + final_dict[i]['neighborPort'] + '---' + final_dict[i]['port'] + '",labelfontsize=0.5 ]'
 		else:
 			tempvar=final_dict[i]['neighborDevice'] + ' -> ' + final_dict[i]['myDevice']		
@@ -591,7 +589,7 @@ def func_graph_withchoice(final_dict,interfaceneeded):
 		sys.exit(1)
 
 #The main function
-def main(username, poolname, fileloc, graphrequired, interfaceneeded, excluded):
+def main(username, poolname, fileloc, graphrequired, intfInfo, excluded, choice):
 
 	
 
@@ -602,59 +600,56 @@ def main(username, poolname, fileloc, graphrequired, interfaceneeded, excluded):
 		if fileloc==None:
 				fileloc = os.path.expanduser('~/setup.txt') #Default File location
 				print ('Default file at ~/setup.txt is used since non-default file locaton as not been provided using -f flag')
-		var_dutslist= func_list_from_file(username, fileloc)
+		finalListOfDuts= fileDutList(username, fileloc)
 
-	if username!=None and fileloc==None:
-		var_dutslist= func_listofduts_grabber_NoNeedPassword(username, poolname) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
+	elif username!=None:
+		if fileloc==None:
+			finalListOfDuts= userDutList(username, poolname) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
 
-	if fileloc!=None and username!=None:
-		print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
-		print ('[WARNING]: You have provided both a DUTS list file as well as username. Username has higher priority for Topology generation and will be considered. Ignoring the DUT file info...')
-		var_dutslist= func_listofduts_grabber_NoNeedPassword(username, poolname) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
+		else:
+			print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
+			print ('[WARNING]: You have provided both a DUTS list file as well as username. Username has higher priority for Topology generation and will be considered. Ignoring the DUT file info...')
+			finalListOfDuts= userDutList(username, poolname) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
 
-	
+		
 
 	#This is used to remove the excluded DUTs from the topology generation
 	if excluded!=None:
-		var_dutslist=func_excluder(var_dutslist,excluded)
+		finalListOfDuts=excludeDutsFromList(finalListOfDuts,excluded)
 
 	
 
-	func_warning_message() #Will warn users about the list of reasons why the script could fail
+	warningMessage() #Will warn users about the list of reasons why the script could fail
 	  	
 	
-	var_finalconnectiondetails= func_neighbor_generator(var_dutslist) #does the work of grabbing lldp info from all the DUTs, and removing duplicates 
-  	#print var_finalconnectiondetails
+	finalConnectionDetails= lldpInfoGrabberAndOutputGenerator(finalListOfDuts) #does the work of grabbing lldp info from all the DUTs, and removing duplicates 
+  	#print finalConnectionDetails
 	
 
-  	while True:
-  		choice = raw_input("Do you want to include even ports connected to ixia (this is best effort)? (Y/n) ")
-  		if choice=='n' or choice =='N' or choice=='no':
-  			break
-  		elif choice=='y' or choice =='Y' or choice=='yes':
-			var_ixiadict= func_ixia(var_dutslist, var_finalconnectiondetails) 
-			var_finalconnectiondetails=var_finalconnectiondetails+var_ixiadict
+  	#This is used to include Ixia Connections as well based on user flag for ixia
+	if choice==('n' or 'N' or 'no'):
+		finalConnectionDetails=finalConnectionDetails	
+	else:
+		listOfIxiaConnections= ixiaConnectionDetailGrabber(finalListOfDuts, finalConnectionDetails) 
+		finalConnectionDetails=finalConnectionDetails+listOfIxiaConnections
+		#print finalConnectionDetails 
 
-			#print var_finalconnectiondetails 
+	#print finalConnectionDetails
 
-			break
-  		else:
-  			print ("Please choose one of the above choices")
 
-	
-	func_neighbor_printer(var_finalconnectiondetails)
+	printToCli(finalConnectionDetails)
 
-	if graphrequired=='no' or graphrequired=='n':
+	if graphrequired==('no' or 'n'):
 		print 'Graph not generated due to user choice'
 		print '* Script Complete!'
 	else:
 		while True:
 			choice = raw_input("Do you have a preference for location of DUTs (leaf/spine),...? (Y/n) ")
-			if choice=='n' or choice =='N' or choice=='no':
-				func_graph_gen(var_finalconnectiondetails, interfaceneeded) #generates a graphical representation with random location of DUTs
+			if choice==('n' or 'N' or 'no'):
+				func_graph_gen(finalConnectionDetails, intfInfo) #generates a graphical representation with random location of DUTs
 				break
-			elif choice=='y' or choice =='Y' or choice=='yes':
-				func_graph_withchoice(var_finalconnectiondetails, interfaceneeded) #generates a graphical representation with location levels chosen by user
+			elif choice==('y' or 'Y' or 'yes'):
+				func_graph_withchoice(finalConnectionDetails, intfInfo) #generates a graphical representation with location levels chosen by user
 				break
 			else:
 				print ("Please choose one of the above choices")
@@ -670,8 +665,9 @@ if __name__== "__main__":
     parser.add_argument('-p', '--pool', default='systest', help='Specify the pool for the above user (default = systest)')
     parser.add_argument('-f', '--file', help='Setup File / DUT List to Load (default = ~/setup.txt)')
     parser.add_argument('-g', '--graph', help='mention (yes/no) for graph generation (default = yes)')
-    parser.add_argument('-i', '--interface', default='yes', help='mention (yes/no) whether you need the interface names in topology(default = yes)')
-    parser.add_argument('-x', '--exclude',nargs='+', help='Exclude the following DUTs from the my devices list during topology formation')
+    parser.add_argument('-i', '--ixia', default='yes', help='mention (yes/no) whether to include even ports connected to ixia (this is best effort)(default = yes)')
+    parser.add_argument('-n', '--interfaceinfo', default='yes', help='mention (yes/no) whether you need the interface names in topology(default = yes)')
+    parser.add_argument('-x', '--exclude',nargs='+', help='Exclude the following DUTs during topology formation')
     options = parser.parse_args()
 
 
@@ -684,7 +680,8 @@ username=options.user
 poolname=options.pool
 fileloc=options.file
 graphrequired=options.graph
-interfaceneeded=options.interface
+choice=options.ixia
+intfInfo=options.interfaceinfo
 excluded=options.exclude
 
-main(username, poolname, fileloc, graphrequired, interfaceneeded, excluded)
+main(username, poolname, fileloc, graphrequired, intfInfo, excluded, choice)
