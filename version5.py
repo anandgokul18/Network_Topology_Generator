@@ -262,6 +262,7 @@ def ixiaConnectionDetailGrabber(dutslist,finalConnectionDetails):
 					ixialist.append(ixiadict)
 					#print onlyixiaconnections
 		except:
+			print "[MESSAGE]: Skipping "+dutslist[i] +" from Ixia connection calculation as well since it is unreachable"
 			continue
 	
 	#print ixialist
