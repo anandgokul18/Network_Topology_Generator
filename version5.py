@@ -399,7 +399,7 @@ def printConnectionsToScreen(dictionaryOfConnections):
 	except IOError:
 		print "[Error]: We did not get permission to generate a text file with the LLDP info. Please fix it if you want to a text file as well"
 		print "[MESSAGE]: Skipping text file and proceeding further"
-		continue
+		
 
 	f.write("\n> The topology in text format is: \n")
 
