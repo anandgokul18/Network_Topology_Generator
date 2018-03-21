@@ -408,14 +408,9 @@ def printConnectionsToScreen(dictionaryOfConnections):
 		f.close()
 
 	except IOError:
-		print "[Error]: We did not get permission to generate a text file with the LLDP info. Please fix it if you want to a text file as well"
-		print "[MESSAGE]: Skipping text file and proceeding further"
-
-		print "\n> The topology in text format is: "
-
-		for i in xrange(0,len(dictionaryOfConnections)):
-			output= dictionaryOfConnections[i]['neighborDevice'] + '\t(' + dictionaryOfConnections[i]['neighborPort'] + ')' + '\t--------------------'  + '\t(' + dictionaryOfConnections[i]['port'] + ')' + dictionaryOfConnections[i]['myDevice']
-			print output
+		print "[ERROR]: We did not get permission to generate files in this directory. Please fix it to proceed..."
+		print "* Finished!"
+		sys.exit(1)
 
 	print"\n ---------------------------------------------------------------------------------------------------------------------- \n "
 	#print "Presented to you by anandgokul. Ping me if any errors/ exceptions are encountered that I missed handling...Sayonara! :D \n \n"
