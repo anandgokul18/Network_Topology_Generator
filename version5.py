@@ -665,10 +665,13 @@ def sendEmailSwatExtension():
 			os.system('zip topology_generated.zip TopologyGenerated.txt Topology.gv.pdf Topology.gv')
 
 			emailBody='topology_generated.zip'
-			sendEmail(emailTo=emailTo, emailSubj=emailSubj, emailBody=emailBody)
-			#mailCmd = '''mutt -e "set content_type=text/html" %s -s '%s' < %s''' % (emailTo, emailSubj, emailBody)
-    		#subprocess.check_output(mailCmd, shell=True)
+			#sendEmail(emailTo=emailTo, emailSubj=emailSubj, emailBody=emailBody)
+
+			os.system('''mutt -s "%s" -a topology_generated.zip %s'''%(emailSubj,emailTo))
+
+			print "[MESSAGE]: Email has been sent to the email address successfully\n"
 			return
+
 		except Exception as e:
 			print "-------------------------------"
 			print "[ERROR]: Error in sending Email. Reason:"
