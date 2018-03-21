@@ -22,13 +22,13 @@ from random import randint
 #SWAT Module Imports
 import labLib
 
-def fileDutList(username,fileloc):
+def fileDutList(username,filePath):
 	try:
 
 		listofdutsasperfile=[]
 		temp=[]
 
-		file = open(fileloc)
+		file = open(filePath)
 		listofdutsasperfile = file.readlines()
 
 		for i,data in enumerate(listofdutsasperfile):
@@ -45,7 +45,7 @@ def fileDutList(username,fileloc):
 		print "\t * "+str(temp)
 		return temp
 	except IOError:
-		print "\n[ERROR]: File does not exist in "+fileloc+" . Please ensure correct file location to proceed \n"
+		print "\n[ERROR]: File does not exist in "+filePath+" . Please ensure correct file location to proceed \n"
 		sys.exit(1)
 
 # def userDutList(username,poolname):
@@ -118,10 +118,10 @@ def userDutList(username,poolname):
 
 	return listofDevicesbyuser
 
-def excludeDutsFromList(finalListOfDuts,excluded):
+def excludeDutsutsFromList(finalListOfDuts,excludeDuts):
 	#Removing the matches using intersections
 	ss= set(finalListOfDuts)
-	fs =set(excluded)
+	fs =set(excludeDuts)
 
 	finallist= list(ss.union(ss)  - ss.intersection(fs))
 	
@@ -673,21 +673,21 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 		sys.exit(1)
 
 #The main function
-def main(username, poolname, fileloc, graphrequired, intfInfo, excluded, includeIxiaPorts):
+def main(username, poolname, filePath, graphrequired, intfInfo, excludeDuts, includeIxiaPorts):
 
 	
 
-	#The below part is used to handle cases of username and/or filelocation provided
+	#The below part is used to handle cases of username and/or filePathation provided
 	if username==None:
 		print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
 		print ('[MESSAGE]: Username has not been provided. Using file for Topology generation')
-		if fileloc==None:
-				fileloc = os.path.expanduser('~/setup.txt') #Default File location
+		if filePath==None:
+				filePath = os.path.expanduser('~/setup.txt') #Default File location
 				print ('[MESSAGE]: Default file at ~/setup.txt is used since non-default file locaton as not been provided using -f flag')
-		finalListOfDuts= fileDutList(username, fileloc)
+		finalListOfDuts= fileDutList(username, filePath)
 
 	elif username!=None:
-		if fileloc==None:
+		if filePath==None:
 			finalListOfDuts= userDutList(username, poolname) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
 
 		else:
@@ -697,9 +697,9 @@ def main(username, poolname, fileloc, graphrequired, intfInfo, excluded, include
 
 		
 
-	#This is used to remove the excluded DUTs from the topology generation
-	if excluded!=None:
-		finalListOfDuts=excludeDutsFromList(finalListOfDuts,excluded)
+	#This is used to remove the excludeDuts DUTs from the topology generation
+	if excludeDuts!=None:
+		finalListOfDuts=excludeDutsutsFromList(finalListOfDuts,excludeDuts)
 
 	
 
@@ -759,10 +759,10 @@ if __name__== "__main__":
 #Assigning the arguments to variables
 username=options.user
 poolname=options.pool
-fileloc=options.file
+filePath=options.file
 graphrequired=options.graph
 includeIxiaPorts=options.ixia
 intfInfo=options.namesofinterfaces
-excluded=options.exclude
+excludeDuts=options.exclude
 
-main(username, poolname, fileloc, graphrequired, intfInfo, excluded, includeIxiaPorts)
+main(username, poolname, filePath, graphrequired, intfInfo, excludeDuts, includeIxiaPorts)
