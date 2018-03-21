@@ -21,6 +21,7 @@ from random import randint
 
 #SWAT Module Imports
 import labLib
+from labLib import findDuts
 
 def fileDutList(username,filePath):
 	try:
