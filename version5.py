@@ -666,8 +666,41 @@ def sendEmailSwatExtension():
 
 			emailBody='topology_generated.zip'
 			#sendEmail(emailTo=emailTo, emailSubj=emailSubj, emailBody=emailBody)
-			mailCmd='''mutt -s "%s" -i body.txt -a topology_generated.zip -- %s'''%(emailSubj,emailTo)
-                        os.system(mailCmd)
+			#mailCmd='''mutt -s "%s" -i body.txt -a topology_generated.zip -- %s'''%(emailSubj,emailTo)
+            #os.system(mailCmd)
+
+        	# Initialize Variables
+            user = getpass.getuser()
+            emailFile = '/tmp/swat-email.%s.txt' % user
+            htmlFile  = '/tmp/swat-email-html.%s.html' % user
+
+            # Create Email Body File
+            if os.path.isfile(os.path.expanduser(emailBody)):
+                shutil.copyfile(os.path.expanduser(emailBody), emailFile)
+            else:
+                with open(emailFile, 'w') as fileId:
+                    fileId.write(emailBody)
+
+            # Create Email HTML Body File
+            with open(emailFile, 'r') as readFileId, open(htmlFile, 'w') as writeFileId:
+                # Open HTML Tags
+                writeFileId.write('<html>\n')
+                writeFileId.write('<body>\n')
+                writeFileId.write('<pre style="font: monospace">\n')
+
+                # Body
+                for line in readFileId:
+                    writeFileId.write(line)
+
+                # Close HTML Tags
+                writeFileId.write("</pre>\n")
+                writeFileId.write("</body>\n")
+                writeFileId.write("</html>\n")
+
+            # Sending Email
+            #mailCmd = '''mail -s "$(echo '%s\nContent-Type: text/html')" %s < %s''' % (emailSubj, emailTo, htmlFile)
+            mailCmd = '''mutt -e "set content_type=text/html" %s -s '%s' < %s''' % (emailTo, emailSubj, htmlFile)
+            subprocess.check_output(mailCmd, shell=True)    
 
 			print "[MESSAGE]: Email has been sent to the email address successfully\n"
 			return
