@@ -378,11 +378,11 @@ def connectionConsolidator(test):
 		endport=data['port'][-1]
 
 		if startNeighborPort!=endNeighborPort:
-			data['neighborPort']=startNeighborPort+'-'+endNeighborPort
+			data['neighborPort']=startNeighborPort+'-'+endNeighborPort.split('Et')[1]
 		else:
 			data['neighborPort']=startNeighborPort
 		if startport!=endport:
-			data['port']=startport+'-'+endport
+			data['port']=startport+'-'+endport.split('Et')[1]
 		else:
 			data['port']=startport
 
