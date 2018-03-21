@@ -1,3 +1,4 @@
+#My code based on Kiran's consolidation code
 test = [{u'neighborDevice': 'ck338', u'neighborPort': u'Et14/3', 'myDevice': u'co546', u'port': u'Et5', u'ttl': 120},
 {u'neighborDevice': 'ck338', u'neighborPort': u'Et14/4', 'myDevice': u'co546', u'port': u'Et6', u'ttl': 120},
 {u'neighborDevice': 'fm210', u'neighborPort': u'Et25', 'myDevice': u'ck338', u'port': u'Et10/4', u'ttl': 120},
