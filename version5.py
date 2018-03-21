@@ -97,6 +97,27 @@ def userDutList(username,poolname):
 		print "* Script Complete!"
 		sys.exit()
 
+# #The below function uses SWAT library to find the list of DUTs owned by user
+# def userDutList(username,poolname):
+	
+# 	alldevices=findDuts(pool=poolname, all=True)
+# 	devices=alldevices.items()
+
+# 	dictOfDevicesbyuser=[]
+# 	listofDevicesbyuser=[]
+
+# 	for i,data in enumerate(devices):
+# 		if data[1]['owner']==username:
+# 			dictOfDevicesbyuser.append(data)
+# 			listofDevicesbyuser.append(data[0])
+
+# 	#print dictOfDevicesbyuser
+# 	#print listofDevicesbyuser
+
+# 	print "\n > The DUTs owned by " + username +" are:  \n\t *  " + str(listofDevicesbyuser)
+
+# 	return listofDevicesbyuser
+
 def excludeDutsFromList(finalListOfDuts,excluded):
 	#Removing the matches using intersections
 	ss= set(finalListOfDuts)
