@@ -5,7 +5,7 @@
 
 #Python Module Imports
 import pexpect #SSH library with expect support
-import json #Output of eApi needs to be parsed
+#import json 
 import pyeapi #eApi support
 import sys
 import os
@@ -408,7 +408,7 @@ def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 	var= os.system("brew install graphviz")
 	print "----------------------------------------------------------------------------"
 
-	#os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
+	os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
 
 	if len(dictionaryOfConnections)>20:
 		graph_string='''
@@ -486,16 +486,13 @@ def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 
 def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 
-	#Installing the requirements for graphviz
-	#var= os.system("sudo pip install graphviz")
-	#print "\n----------------------------------------------------------------------------"
-	#print "Please complete the installation of Xcode Dev Tools (if prompted) via the GUI and rerun this script"
-	print "Status:"
-	var1= os.system("xcode-select --install")
+	print "[MESSAGE] Ignore on Linux. On macOS, ignore unless prompted for Xcode tools installation:"
 	print "----------------------------------------------------------------------------"
+	var1= os.system("xcode-select --install")
 	var= os.system("brew install graphviz")
+	print "----------------------------------------------------------------------------"
 
-	#os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
+	os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
 
 	if len(dictionaryOfConnections)>20:
 		graph_string='''
@@ -623,7 +620,7 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 
 	print "----------------------------------------------------------------------------"
 	print "[MESSAGE] If your device names contains either '.' or '-', it will be replaced by '_' to avoid conflict with other packages"
-	print "[MESSAGE] If you get a blank file as output, please verify your choice for device levels. Your choice may have given impossible to comprehend/design for our tool \n \n"
+	print "[MESSAGE] If you get a blank file as output, please verify your includeIxiaPorts for device levels. Your includeIxiaPorts may have given impossible to comprehend/design for our tool \n \n"
 
 	print "> Completed successfully: \n"
 
@@ -660,7 +657,7 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 		sys.exit(1)
 
 #The main function
-def main(username, poolname, fileloc, graphrequired, intfInfo, excluded, choice):
+def main(username, poolname, fileloc, graphrequired, intfInfo, excluded, includeIxiaPorts):
 
 	
 
@@ -698,33 +695,35 @@ def main(username, poolname, fileloc, graphrequired, intfInfo, excluded, choice)
 	
 
   	#This is used to include Ixia Connections as well based on user flag for ixia
-	if choice=='n' or choice=='N' or choice=='no':
+	if includeIxiaPorts=='n' or includeIxiaPorts=='N' or includeIxiaPorts=='no':
 		finalConnectionDetails=finalConnectionDetails	
 	else:
 		listOfIxiaConnections= ixiaConnectionDetailGrabber(finalListOfDuts, finalConnectionDetails) 
 		finalConnectionDetails=finalConnectionDetails+listOfIxiaConnections
 		#print finalConnectionDetails 
-
 	#print finalConnectionDetails
 
+	#This is used to consolidate the links between same two devices
 	finalConnectionDetails=connectionConsolidator(finalConnectionDetails)
+
 
 	printConnectionsToScreen(finalConnectionDetails)
 
+
 	if graphrequired=='no' or graphrequired=='n':
-		print 'Graph not generated due to user choice'
+		print 'Graph not generated due to user includeIxiaPorts'
 		print '* Script Complete!'
 	else:
 		while True:
-			choice = raw_input("Do you have a preference for location of DUTs (leaf/spine),...? (Y/n) ")
-			if choice=='n' or choice=='N' or choice=='no':
+			includeIxiaPorts = raw_input("Do you have a preference of Leaf-Spine for the DUTs (yes/no)? Type 'no' if you have no clue it means:  ")
+			if includeIxiaPorts=='n' or includeIxiaPorts=='N' or includeIxiaPorts=='no':
 				automaticGraphGenerator(finalConnectionDetails, intfInfo) #generates a graphical representation with random location of DUTs
 				break
-			elif choice=='y' or choice=='Y' or choice=='yes':
+			elif includeIxiaPorts=='y' or includeIxiaPorts=='Y' or includeIxiaPorts=='yes':
 				graphGeneratorwithLeafSpine(finalConnectionDetails, intfInfo) #generates a graphical representation with location levels chosen by user
 				break
 			else:
-				print ("Please choose one of the above choices")
+				print ("Please choose one of the above includeIxiaPortss")
 
 
 if __name__== "__main__":
@@ -745,8 +744,8 @@ username=options.user
 poolname=options.pool
 fileloc=options.file
 graphrequired=options.graph
-choice=options.ixia
+includeIxiaPorts=options.ixia
 intfInfo=options.namesofinterfaces
 excluded=options.exclude
 
-main(username, poolname, fileloc, graphrequired, intfInfo, excluded, choice)
+main(username, poolname, fileloc, graphrequired, intfInfo, excluded, includeIxiaPorts)
