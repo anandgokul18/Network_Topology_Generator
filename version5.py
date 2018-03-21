@@ -393,9 +393,17 @@ def printConnectionsToScreen(dictionaryOfConnections):
 	#************************************************************************
 	#The below code will print the output in neat format
 	print "\n> The topology in text format is: "
-	for i in xrange(0,len(dictionaryOfConnections)):
-		print dictionaryOfConnections[i]['neighborDevice'] + '\t(' + dictionaryOfConnections[i]['neighborPort'] + ')' + '\t--------------------'  + '\t(' + dictionaryOfConnections[i]['port'] + ')' + dictionaryOfConnections[i]['myDevice']
 
+	f= open("TopologyGenerated.txt","w+")
+	f.write("\n> The topology in text format is: \n")
+
+	for i in xrange(0,len(dictionaryOfConnections)):
+		output= dictionaryOfConnections[i]['neighborDevice'] + '\t(' + dictionaryOfConnections[i]['neighborPort'] + ')' + '\t--------------------'  + '\t(' + dictionaryOfConnections[i]['port'] + ')' + dictionaryOfConnections[i]['myDevice']
+		f.write(output)
+		f.write('\n')
+		print output
+
+	f.close()
 	print"\n ---------------------------------------------------------------------------------------------------------------------- \n "
 	#print "Presented to you by anandgokul. Ping me if any errors/ exceptions are encountered that I missed handling...Sayonara! :D \n \n"
 
@@ -439,7 +447,7 @@ def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 	#The below block is for converting the topology to graphviz format
 	for i in xrange(0,len(dictionaryOfConnections)):
 		if intfInfo=='yes':
-			tempvar=dictionaryOfConnections[i]['neighborDevice'] + ' -> ' + dictionaryOfConnections[i]['myDevice'] + ' [ label = "' + dictionaryOfConnections[i]['neighborPort'] + '---' + dictionaryOfConnections[i]['port'] + '" ]'
+			tempvar=dictionaryOfConnections[i]['neighborDevice'] + ' -> ' + dictionaryOfConnections[i]['myDevice'] + ' [ label = "' + dictionaryOfConnections[i]['neighborPort'] + '------' + dictionaryOfConnections[i]['port'] + '" ]'
 		else:
 			tempvar=dictionaryOfConnections[i]['neighborDevice'] + ' -> ' + dictionaryOfConnections[i]['myDevice']
 		graph_string=graph_string+tempvar+'\n'
@@ -610,7 +618,7 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 	#The below block is for converting the topology to graphviz format
 	for i in xrange(0,len(dictionaryOfConnections)):
 		if intfInfo=='yes':
-			tempvar=dictionaryOfConnections[i]['neighborDevice'] + ' -> ' + dictionaryOfConnections[i]['myDevice'] + ' [ label = "' + dictionaryOfConnections[i]['neighborPort'] + '---' + dictionaryOfConnections[i]['port'] + '",labelfontsize=0.5 ]'
+			tempvar=dictionaryOfConnections[i]['neighborDevice'] + ' -> ' + dictionaryOfConnections[i]['myDevice'] + ' [ label = "' + dictionaryOfConnections[i]['neighborPort'] + '------' + dictionaryOfConnections[i]['port'] + '",labelfontsize=0.5 ]'
 		else:
 			tempvar=dictionaryOfConnections[i]['neighborDevice'] + ' -> ' + dictionaryOfConnections[i]['myDevice']		
 		graph_string=graph_string+tempvar+'\n'
