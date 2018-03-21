@@ -479,11 +479,11 @@ def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 		returned_value = subprocess.call(installationcheckcmd, shell=True)
 
 		if returned_value==1: #That means OmniGraffle is NOT present
-			print "\t * The PDF file has been generated in current directory! " #Instead of OmniGraffle not installed message
+			print "\t * The PDF file (graphic topology) and txt file (text) have been generated in current directory! " #Instead of OmniGraffle not installed message
 
 
 		elif returned_value==0: #That means OmniGraffle is present
-			print "\t * The PDF file has been generated in current directory and OmniGraffle has been opened to edit it. Please choose 'Hierarchial' in OmniGraffle to edit it."
+			print "\t * The PDF file (graphic topology) and txt file (text) have been generated in current directory. Also, OmniGraffle has been opened to edit the GV file (graphic topology). Please choose 'Hierarchial' in OmniGraffle to edit it."
 			subprocess.call(
     			["/usr/bin/open", "-W", "-n", "-a", "/Applications/OmniGraffle.app","Topology.gv"]
     		)
@@ -651,11 +651,11 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 		returned_value = subprocess.call(installationcheckcmd, shell=True)
 
 		if returned_value==1: #That means OmniGraffle is NOT present
-			print "\t * The PDF file has been generated in current directory! " #Instead of OmniGraffle not installed message
+			print "\t * The PDF file (graphic topology) and txt file (text) have been generated in current directory! " #Instead of OmniGraffle not installed message
 
 
 		elif returned_value==0: #That means OmniGraffle is present
-			print "\t * The PDF file has been generated in current directory and OmniGraffle has been opened to edit it. Please choose 'Hierarchial' in OmniGraffle to edit it."
+			print "\t * The PDF file (graphic topology) and txt file (text) have been generated in current directory. Also, OmniGraffle has been opened to edit the GV file (graphic topology). Please choose 'Hierarchial' in OmniGraffle to edit it."
 			subprocess.call(
     			["/usr/bin/open", "-W", "-n", "-a", "/Applications/OmniGraffle.app","Topology.gv"]
     		)
@@ -719,7 +719,8 @@ def main(username, poolname, fileloc, graphrequired, intfInfo, excluded, include
 
 
 	if graphrequired=='no' or graphrequired=='n':
-		print 'Graph not generated due to user includeIxiaPorts'
+		print '[MESSAGE]: Graph not generated due to user includeIxiaPorts'
+		print "* Text file named 'TopologyGenerated.txt' has been created on the same directory containing LLDP info"
 		print '* Script Complete!'
 	else:
 		while True:
