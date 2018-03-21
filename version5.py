@@ -394,7 +394,12 @@ def printConnectionsToScreen(dictionaryOfConnections):
 	#The below code will print the output in neat format
 	print "\n> The topology in text format is: "
 
-	f= open("TopologyGenerated.txt","w+")
+	try:
+		f= open("TopologyGenerated.txt","w+")
+	except IOError:
+		print "[Error]: We did not get permission to generate a text file with the LLDP info. Please fix it if you want to a text file as well"
+		print "[MESSAGE]: Skipping text file and proceeding further"
+
 	f.write("\n> The topology in text format is: \n")
 
 	for i in xrange(0,len(dictionaryOfConnections)):
