@@ -408,7 +408,7 @@ def printConnectionsToScreen(dictionaryOfConnections):
 		f.close()
 
 	except IOError:
-		print "[ERROR]: We did not get permission to generate files in this directory. Please fix it to proceed..."
+		print "[ERROR]: Permission Denied for generating files in this directory. Please fix it to proceed..."
 		print "* Finished!"
 		sys.exit(1)
 
