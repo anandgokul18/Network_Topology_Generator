@@ -299,7 +299,7 @@ def ixiaConnectionDetailGrabber(dutslist,finalConnectionDetails):
 				ixiadict['neighborDevice']=dutslist[i]
 				ixiadict['neighborPort']=('Et'+listofconnections[k].split('Ethernet')[1])
 				#print listofconnections[k]
-				ixiadict['myDevice']='Ixia_'+str(randint(0,100))
+				ixiadict['myDevice']='Ixia' #+'_'+str(randint(0,100))
 				ixiadict['port']='unknown'
 				ixialist.append(ixiadict)
 				#print onlyixiaconnections
@@ -343,6 +343,51 @@ def func_eapi_enabler(dutname):
 		print "[ERROR]: Device "+dutname +" is unreachable. Please fix it and rerun the script! \n"
 		print "* Script Complete!"
 		sys.exit(1)
+
+def connectionConsolidator(test):
+	connections = {}
+
+	for t in test:
+		b = t['myDevice']
+		a = t['neighborDevice']
+		p2 = t['port']
+		p1 = t['neighborPort']
+
+		if a+'_'+b not in connections:
+		    connections[a+'_'+b] = {'myDevice':a, 'neighborDevice':b, 'port':[p1], 'neighborPort':[p2]}
+		else:
+			connections[a+'_'+b]['port'].append(p1)
+			connections[a+'_'+b]['neighborPort'].append(p2)
+
+	#print connections
+
+	finallist=[]
+
+	for value in connections.values():
+		finallist.append(value)
+
+	#print finallist
+
+	for i,data in enumerate(finallist):
+		data['neighborPort'].sort()
+		startNeighborPort=data['neighborPort'][0]
+		endNeighborPort=data['neighborPort'][-1]
+
+		data['port'].sort()
+		startport=data['port'][0]
+		endport=data['port'][-1]
+
+		if startNeighborPort!=endNeighborPort:
+			data['neighborPort']=startNeighborPort+'-'+endNeighborPort
+		else:
+			data['neighborPort']=startNeighborPort
+		if startport!=endport:
+			data['port']=startport+'-'+endport
+		else:
+			data['port']=startport
+
+	#print finallist
+	return finallist
 
 def printConnectionsToScreen(dictionaryOfConnections):
 	#************************************************************************
@@ -455,18 +500,14 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 	if len(dictionaryOfConnections)>20:
 		graph_string='''
 		digraph finite_state_machine {	
-		splines=true;
-		node [shape = circle];
-		node [fontsize=7];
+		node [shape = box];
 		rankdir="LR"
 		'''
 
 	if len(dictionaryOfConnections)<=20:
 		graph_string='''
 		digraph finite_state_machine {	
-		splines=true;
-		node [shape = circle];
-		node [fontsize=7];
+		node [shape = box];
 		'''
 
 	nooflevels=raw_input("Please enter the number of levels in your topology. Eg) Leaf-Spine is 2 levels and Leaf-Spine-Superspine is 3 levels. (Enter a integer:) ")
@@ -491,10 +532,9 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 					value=raw_input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+dictionaryOfConnections[i]['neighborDevice'] +": ")
 					dictoflevels[int(value)].append(dictionaryOfConnections[i]['neighborDevice'])
 				if dictionaryOfConnections[i]['myDevice'] not in alreadyadded:
-					if 'Ixia' not in dictionaryOfConnections[i]['myDevice']:
-						alreadyadded.append(dictionaryOfConnections[i]['myDevice'])
-						value=raw_input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+dictionaryOfConnections[i]['myDevice'] +": ")
-						dictoflevels[int(value)].append(dictionaryOfConnections[i]['myDevice'])
+					alreadyadded.append(dictionaryOfConnections[i]['myDevice'])
+					value=raw_input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+dictionaryOfConnections[i]['myDevice'] +": ")
+					dictoflevels[int(value)].append(dictionaryOfConnections[i]['myDevice'])
 			#print alreadyadded
 		
 	except KeyError as e:
@@ -667,6 +707,7 @@ def main(username, poolname, fileloc, graphrequired, intfInfo, excluded, choice)
 
 	#print finalConnectionDetails
 
+	finalConnectionDetails=connectionConsolidator(finalConnectionDetails)
 
 	printConnectionsToScreen(finalConnectionDetails)
 
@@ -695,7 +736,7 @@ if __name__== "__main__":
     parser.add_argument('-f', '--file', help='Setup File / DUT List to Load (default = ~/setup.txt)')
     parser.add_argument('-g', '--graph', help='mention (yes/no) for graph generation (default = yes)')
     parser.add_argument('-i', '--ixia', default='yes', help='mention (yes/no) whether to include even ports connected to ixia (this is best effort)(default = yes)')
-    parser.add_argument('-n', '--interfaceinfo', default='yes', help='mention (yes/no) whether you need the interface names in topology(default = yes)')
+    parser.add_argument('-n', '--namesofinterfaces', default='yes', help='mention (yes/no) whether you need the interface names in topology(default = yes)')
     parser.add_argument('-x', '--exclude',nargs='+', help='Exclude the following DUTs during topology formation')
     options = parser.parse_args()
 
@@ -705,7 +746,7 @@ poolname=options.pool
 fileloc=options.file
 graphrequired=options.graph
 choice=options.ixia
-intfInfo=options.interfaceinfo
+intfInfo=options.namesofinterfaces
 excluded=options.exclude
 
 main(username, poolname, fileloc, graphrequired, intfInfo, excluded, choice)
