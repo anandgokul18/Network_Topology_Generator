@@ -49,54 +49,7 @@ def fileDutList(username,filePath):
 		print "\n[ERROR]: File does not exist in "+filePath+" . Please ensure correct file location to proceed \n"
 		sys.exit(1)
 
-# def userDutList(username,poolname):
-# 	print "\n > Neighbor Details of DUTS in Art list output for user '"+username+ "':"
 
-# 	usernamelogin='anandgokul'
-# 	server='us128'
-# 	password='anandgokul123'
-# 	#*************************************************************************************
-# 	#The below code will use directly run Art list command and get output (NO SSH)
-
-# 	#The below try-except block will cover exception when user-server is unreachable
-# 	try:
-# 		child = pexpect.spawn("ssh "+ usernamelogin+ "@"+server,timeout=30)
-# 		child.expect("password:")
-# 		child.sendline(password)
-
-# 		cmd1= "Art list --pool="+poolname+" | grep "+ username
-# 		child.expect(">")
-# 		child.sendline(cmd1)
-
-# 		#Saving the output to duts1
-# 		child.expect(">")
-# 		duts1= (child.before)
-# 		#print duts1
-
-# 		#Splitting the output based on newline into list duts2
-# 		duts2=duts1.strip()
-# 		duts2= duts2.split("\n")
-# 		#print duts2
-
-# 		#Stripping the leading whitespaces in each element of above list. After that saving only the dut name in another list
-# 		duts3=[]
-# 		for i in xrange(0, len(duts2)):
-# 		   duts2[i]=duts2[i].strip()
-# 		   if i!=0:
-# 		      duts3.append((duts2[i].split(" "))[0])
-# 		#print duts3
-
-# 		#We got only the dut names as list in dut3. But, there is another trash entry at end which needs to be removed. 
-# 		dutslist=duts3[:-1]
-
-# 		print "\t * The DUTs owned by " + username +" are:  " + str(dutslist)
-
-# 		return dutslist
-
-# 	except Exception as e:
-# 		print "\n \t [ERROR] There was some issue with reaching the user servers. Please fix reachability to Arista Network \n"
-# 		print "* Script Complete!"
-# 		sys.exit()
 
 #The below function uses SWAT library to find the list of DUTs owned by user
 def userDutList(username,poolname):
@@ -119,7 +72,7 @@ def userDutList(username,poolname):
 
 	return listofDevicesbyuser
 
-def excludeDutsutsFromList(finalListOfDuts,excludeDuts):
+def excludedFromList(finalListOfDuts,excludeDuts):
 	#Removing the matches using intersections
 	ss= set(finalListOfDuts)
 	fs =set(excludeDuts)
@@ -139,7 +92,7 @@ def warningMessage():
 	print"\n !!! OUTPUT WARNING !!! "
 	print "This script will consider all non-LLDP supported neighbors (such as linux servers) as Ixia connections only. \n"
 
-def lldpInfoGrabberAndOutputGenerator(dutslist):
+def lldpInfo(dutslist):
 	
 #************************************************************************
 #The below code will grab lldp info from all DUTs in json format and refine it and
@@ -170,31 +123,34 @@ def lldpInfoGrabberAndOutputGenerator(dutslist):
 		except pyeapi.eapilib.ConnectionError as e:
 	  		print "\n[Please Wait]: eApi is not enabled on one of your devices namely:<-- "+dutslist[i]+"-->. Hold on while we do that for you \n"
 	  		
-	  		func_eapi_enabler(dutslist[i])
+	  		reachabilityFlag=func_eapi_enabler(dutslist[i]) #The return flag '1' is used to skip that device since it was not reachable in first place. If flag=0, then, we can do the below
 
-	  		try:
-				#Same as above: Using Python eAPi for getting outputs in json format
-				conn = pyeapi.connect(host=dutslist[i], transport='https')
-				temp = conn.execute(['show lldp neighbors'])
-				#print temp
+	  		if reachabilityFlag==1:
+	  			continue
+	  		else:
+		  		try:
+					#Same as above: Using Python eAPi for getting outputs in json format
+					conn = pyeapi.connect(host=dutslist[i], transport='https')
+					temp = conn.execute(['show lldp neighbors'])
+					#print temp
 
-				allneighbors =temp['result'][0]['lldpNeighbors']
-				#print allneighbors
+					allneighbors =temp['result'][0]['lldpNeighbors']
+					#print allneighbors
 
-				for j in xrange(0,len(allneighbors)):
-					temp_diction = allneighbors[j]
-					temp_diction['myDevice']=str(dutslist[i])+'.sjc.aristanetworks.com'
-					tempDictOfConnections.append(temp_diction)
-				#print temp_diction
+					for j in xrange(0,len(allneighbors)):
+						temp_diction = allneighbors[j]
+						temp_diction['myDevice']=str(dutslist[i])+'.sjc.aristanetworks.com'
+						tempDictOfConnections.append(temp_diction)
+					#print temp_diction
 
-				tempDictOfConnections = tempDictOfConnections[:-1]
+					tempDictOfConnections = tempDictOfConnections[:-1]
 
-				#print tempDictOfConnections
+					#print tempDictOfConnections
 
-			except:
-				print "[ERROR] Enabling eApi automatically failed. Please enable eApi manually on "+dutslist[i]+ " by doing 'management api http-commands' --> 'no shut' and then rerun the script"
-				print "* Script Complete!"
-				sys.exit(1)
+				except:
+					print "[ERROR] Enabling eApi automatically failed. Please enable eApi manually on "+dutslist[i]+ " by doing 'management api http-commands' --> 'no shut' and then rerun the script"
+					print "* Script Complete!"
+					sys.exit(1)
 
 	#************************************************************************
 	#The below code will remove the duplicates from the grand dictionary such that one connection shows up only once. The duplicates are marked as key=temp and value=NULL
@@ -257,53 +213,56 @@ def ixiaConnectionDetailGrabber(dutslist,finalConnectionDetails):
 	ixialist=[]
 
 	for i in xrange(0,len(dutslist)):
-		
-		#Using Python eAPi for getting outputs in json format
-		conn = pyeapi.connect(host=dutslist[i], transport='https')
-		temp = conn.execute(['show interfaces status connected'])
-		#print temp
+	
+		try:	
+			#Using Python eAPi for getting outputs in json format
+			conn = pyeapi.connect(host=dutslist[i], transport='https')
+			temp = conn.execute(['show interfaces status connected'])
+			#print temp
 
-		allconnections =temp['result'][0]['interfaceStatuses']
-		#print allconnections
+			allconnections =temp['result'][0]['interfaceStatuses']
+			#print allconnections
 
-		listofconnections= allconnections.keys()
-		#print listofconnections
+			listofconnections= allconnections.keys()
+			#print listofconnections
 
-		#Removing management and port-channel interfaces from list
-		for k in xrange(0,len(listofconnections)):
-			#print listofconnections[k]
-			if 'Management' in listofconnections[k] or 'Port-Channel' in listofconnections[k]:
-				listofconnections[k]=None
-			#print listofconnections[k]
-
-		#Removing lldp interfaces from ixia interfaces
-		for j in xrange(0,len(finalConnectionDetails)):
-			#print finalConnectionDetails[i]
-		   	if finalConnectionDetails[j]['neighborDevice'] or finalConnectionDetails[j]['myDevice']==dutslist[i]:
-		   		if finalConnectionDetails[j]['neighborDevice']==dutslist[i]:
-		   			for k in xrange(0,len(listofconnections)):
-		   				if listofconnections[k]==('Ethernet'+finalConnectionDetails[j]['neighborPort'].split('Et')[1]):
-		   					listofconnections[k]=None
-		   		if finalConnectionDetails[j]['myDevice']==dutslist[i]:
-		   			for k in xrange(0,len(listofconnections)):
-		   				if listofconnections[k]==('Ethernet'+finalConnectionDetails[j]['port'].split('Et')[1]):
-		   					listofconnections[k]=None
-		
-		#print listofconnections
-
-		#Makes a dictionary containing the DUT name and the Ixia ports
-		onlyixiaconnections=[]
-		for k in xrange(0,len(listofconnections)):
-			ixiadict={}
-			if listofconnections[k]!=None:
-				onlyixiaconnections.append(listofconnections[k])
-				ixiadict['neighborDevice']=dutslist[i]
-				ixiadict['neighborPort']=('Et'+listofconnections[k].split('Ethernet')[1])
+			#Removing management and port-channel interfaces from list
+			for k in xrange(0,len(listofconnections)):
 				#print listofconnections[k]
-				ixiadict['myDevice']='Ixia' #+'_'+str(randint(0,100))
-				ixiadict['port']='unknown'
-				ixialist.append(ixiadict)
-				#print onlyixiaconnections
+				if 'Management' in listofconnections[k] or 'Port-Channel' in listofconnections[k] or '.' in listofconnections[k]:
+					listofconnections[k]=None
+				#print listofconnections[k]
+
+			#Removing lldp interfaces from ixia interfaces
+			for j in xrange(0,len(finalConnectionDetails)):
+				#print finalConnectionDetails[i]
+			   	if finalConnectionDetails[j]['neighborDevice'] or finalConnectionDetails[j]['myDevice']==dutslist[i]:
+			   		if finalConnectionDetails[j]['neighborDevice']==dutslist[i]:
+			   			for k in xrange(0,len(listofconnections)):
+			   				if listofconnections[k]==('Ethernet'+finalConnectionDetails[j]['neighborPort'].split('Et')[1]):
+			   					listofconnections[k]=None
+			   		if finalConnectionDetails[j]['myDevice']==dutslist[i]:
+			   			for k in xrange(0,len(listofconnections)):
+			   				if listofconnections[k]==('Ethernet'+finalConnectionDetails[j]['port'].split('Et')[1]):
+			   					listofconnections[k]=None
+			
+			#print listofconnections
+
+			#Makes a dictionary containing the DUT name and the Ixia ports
+			onlyixiaconnections=[]
+			for k in xrange(0,len(listofconnections)):
+				ixiadict={}
+				if listofconnections[k]!=None:
+					onlyixiaconnections.append(listofconnections[k])
+					ixiadict['neighborDevice']=dutslist[i]
+					ixiadict['neighborPort']=('Et'+listofconnections[k].split('Ethernet')[1])
+					#print listofconnections[k]
+					ixiadict['myDevice']='Ixia' #+'_'+str(randint(0,100))
+					ixiadict['port']='unknown'
+					ixialist.append(ixiadict)
+					#print onlyixiaconnections
+		except:
+			continue
 	
 	#print ixialist
 	return ixialist
@@ -338,12 +297,16 @@ def func_eapi_enabler(dutname):
 		#print output
 		initproc.close()
 		print '[MESSAGE] We are still trying to enable eApi on '+dutname+'\n'
-
+		return 0
 
 	except socket.error:
-		print "[ERROR]: Device "+dutname +" is unreachable. Please fix it and rerun the script! \n"
-		print "* Script Complete!"
-		sys.exit(1)
+		print "[ERROR]: Device "+dutname +" is unreachable. \n"
+		continueOrStop=raw_input('Do you want to skip this device and proceed with other devices? (yes/no): ')
+		if continueOrStop=='yes' or continueOrStop=='y':
+			return 1
+		else:
+			print "* DUT unreachable.\n * Script Finished!"
+			sys.exit(1)
 
 def connectionConsolidator(test):
 	connections = {}
@@ -456,7 +419,7 @@ def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 	#The below block is for converting the topology to graphviz format
 	for i in xrange(0,len(dictionaryOfConnections)):
 		if intfInfo=='yes':
-			tempvar=dictionaryOfConnections[i]['neighborDevice'] + ' -> ' + dictionaryOfConnections[i]['myDevice'] + ' [ label = "' + dictionaryOfConnections[i]['neighborPort'] + '------' + dictionaryOfConnections[i]['port'] + '" ]'
+			tempvar=dictionaryOfConnections[i]['neighborDevice'] + ' -> ' + dictionaryOfConnections[i]['myDevice'] + ' [ label = "' + dictionaryOfConnections[i]['neighborPort'] + '<------>' + dictionaryOfConnections[i]['port'] + '" ]'
 		else:
 			tempvar=dictionaryOfConnections[i]['neighborDevice'] + ' -> ' + dictionaryOfConnections[i]['myDevice']
 		graph_string=graph_string+tempvar+'\n'
@@ -627,7 +590,7 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 	#The below block is for converting the topology to graphviz format
 	for i in xrange(0,len(dictionaryOfConnections)):
 		if intfInfo=='yes':
-			tempvar=dictionaryOfConnections[i]['neighborDevice'] + ' -> ' + dictionaryOfConnections[i]['myDevice'] + ' [ label = "' + dictionaryOfConnections[i]['neighborPort'] + '------' + dictionaryOfConnections[i]['port'] + '",labelfontsize=0.5 ]'
+			tempvar=dictionaryOfConnections[i]['neighborDevice'] + ' -> ' + dictionaryOfConnections[i]['myDevice'] + ' [ label = "' + dictionaryOfConnections[i]['neighborPort'] + '<------>' + dictionaryOfConnections[i]['port'] + '",labelfontsize=0.5 ]'
 		else:
 			tempvar=dictionaryOfConnections[i]['neighborDevice'] + ' -> ' + dictionaryOfConnections[i]['myDevice']		
 		graph_string=graph_string+tempvar+'\n'
@@ -674,40 +637,41 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 		sys.exit(1)
 
 #The main function
-def main(username, poolname, filePath, graphrequired, intfInfo, excludeDuts, includeIxiaPorts):
+def main(username, poolname, filePath, graphrequired, intfInfo, excludeDuts, includeIxiaPorts, consolidateInterfaces):
 
 	
 
 	#The below part is used to handle cases of username and/or filePathation provided
-	if username==None:
+	if username==None and filePath==None:
 		print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
 		print ('[MESSAGE]: Username has not been provided. Using file for Topology generation')
-		if filePath==None:
-				filePath = os.path.expanduser('~/setup.txt') #Default File location
-				print ('[MESSAGE]: Default file at ~/setup.txt is used since non-default file locaton as not been provided using -f flag')
+		filePath = os.path.expanduser('~/setup.txt') #Default File location
+		print ('[MESSAGE]: Default file at ~/setup.txt is used since custom file locaton as not been provided using -f flag')
 		finalListOfDuts= fileDutList(username, filePath)
 
-	elif username!=None:
-		if filePath==None:
-			finalListOfDuts= userDutList(username, poolname) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
-
-		else:
+	elif username==None and filePath!=None:
+		print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
+		print ('[MESSAGE]: Username has not been provided. Using file for Topology generation')
+		finalListOfDuts= fileDutList(username, filePath)
+	
+	else:
+		if filePath!=None:
 			print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
 			print ('[WARNING]: You have provided both a DUTS list file as well as username. Username has higher priority for Topology generation and will be considered. Ignoring the DUT file info...')
-			finalListOfDuts= userDutList(username, poolname) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
+		finalListOfDuts= userDutList(username, poolname) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
 
 		
 
 	#This is used to remove the excludeDuts DUTs from the topology generation
 	if excludeDuts!=None:
-		finalListOfDuts=excludeDutsutsFromList(finalListOfDuts,excludeDuts)
+		finalListOfDuts=excludedFromList(finalListOfDuts,excludeDuts)
 
 	
 
 	warningMessage() #Will warn users about the list of reasons why the script could fail
 	  	
 	
-	finalConnectionDetails= lldpInfoGrabberAndOutputGenerator(finalListOfDuts) #does the work of grabbing lldp info from all the DUTs, and removing duplicates 
+	finalConnectionDetails= lldpInfo(finalListOfDuts) #does the work of grabbing lldp info from all the DUTs, and removing duplicates 
   	#print finalConnectionDetails
 	
 
@@ -721,8 +685,8 @@ def main(username, poolname, filePath, graphrequired, intfInfo, excludeDuts, inc
 	#print finalConnectionDetails
 
 	#This is used to consolidate the links between same two devices
-	finalConnectionDetails=connectionConsolidator(finalConnectionDetails)
-
+	if consolidateInterfaces=='yes':
+		finalConnectionDetails=connectionConsolidator(finalConnectionDetails)		
 
 	printConnectionsToScreen(finalConnectionDetails)
 
@@ -753,6 +717,7 @@ if __name__== "__main__":
     parser.add_argument('-f', '--file', help='Setup File / DUT List to Load (default = ~/setup.txt)')
     parser.add_argument('-g', '--graph', help='mention (yes/no) for graph generation (default = yes)')
     parser.add_argument('-i', '--ixia', default='yes', help='mention (yes/no) whether to include even ports connected to ixia (this is best effort)(default = yes)')
+    parser.add_argument('-c', '--consolidation', default='yes', help='mention (yes/no) whether to group interfaces between two devices together (default = yes)')
     parser.add_argument('-n', '--namesofinterfaces', default='yes', help='mention (yes/no) whether you need the interface names in topology(default = yes)')
     parser.add_argument('-x', '--exclude',nargs='+', help='Exclude the following DUTs during topology formation')
     options = parser.parse_args()
@@ -763,7 +728,8 @@ poolname=options.pool
 filePath=options.file
 graphrequired=options.graph
 includeIxiaPorts=options.ixia
+consolidateInterfaces=options.consolidation
 intfInfo=options.namesofinterfaces
 excludeDuts=options.exclude
 
-main(username, poolname, filePath, graphrequired, intfInfo, excludeDuts, includeIxiaPorts)
+main(username, poolname, filePath, graphrequired, intfInfo, excludeDuts, includeIxiaPorts, consolidateInterfaces)
