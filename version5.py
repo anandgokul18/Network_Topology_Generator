@@ -727,7 +727,7 @@ def main(username, poolname, fileloc, graphrequired, intfInfo, excluded, include
 
 
 	if graphrequired=='no' or graphrequired=='n':
-		print '[MESSAGE]: Graph not generated due to user includeIxiaPorts'
+		print '[MESSAGE]: Graph not generated due to user choice'
 		print "* Text file named 'TopologyGenerated.txt' has been created on the same directory containing LLDP info"
 		print '* Script Complete!'
 	else:
