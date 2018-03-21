@@ -22,6 +22,8 @@ from random import randint
 #SWAT Module Imports
 import labLib
 from labLib import findDuts
+import clientLib
+from clientLib import sendEmail
 
 def fileDutList(username,filePath):
 	try:
@@ -436,6 +438,9 @@ def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 	try:
 		s = Source(graph_string, filename="Topology.gv", format="pdf")
 		s.view()
+
+		#Send Email with the script
+		sendEmailSwatExtension()
 	except Exception as e:
 		print e
 		print"\n ---------------------------------------------------------------------------------------------------------------------- "
@@ -446,6 +451,9 @@ def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 		os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
 		s = Source(graph_string, filename="Topology.gv", format="pdf")
 		s.view()
+
+		#Send Email with the script
+		sendEmailSwatExtension()
 		
 	try:
 		installationcheckcmd="ls /Applications/ | grep -i OmniGraffle"
@@ -609,6 +617,10 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 	try:
 		s = Source(graph_string, filename="Topology.gv", format="pdf")
 		s.view()
+
+		#Send Email with the script
+		sendEmailSwatExtension()
+
 	except:
 		print"\n ---------------------------------------------------------------------------------------------------------------------- "
 		print "[ERROR] Looks like we encountered an error. We'll see if installing a package fixes it. Please provide your mac password if prompted"
@@ -618,6 +630,9 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 		os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
 		s = Source(graph_string, filename="Topology.gv", format="pdf")
 		s.view()
+
+		#Send Email with the script
+		sendEmailSwatExtension()
 		
 	try:
 		installationcheckcmd="ls /Applications/ | grep -i OmniGraffle"
@@ -637,10 +652,33 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 		print "* Script Complete!"
 		sys.exit(1)
 
+def sendEmailSwatExtension():
+	emailChoice=raw_input("Do you need to send the generated files to your email? (yes/no): " )
+	if emailChoice=='no' or emailChoice=='n' or emailChoice=='N':
+		return
+	else:
+		try:
+			emailTo=raw_input("Enter your Arista email address (To address): ")
+			emailSubj= "Topology generation files- Graphic PDF, Graphic GV and Text"
+
+			#Compressing the 3 files into a zip file
+			os.system('zip topology_generated.zip TopologyGenerated.txt Topology.gv.pdf Topology.gv')
+
+			emailBody='topology_generated.zip'
+			sendEmail(emailTo=emailTo, emailSubj=emailSubj, emailBody=emailBody)
+			#mailCmd = '''mutt -e "set content_type=text/html" %s -s '%s' < %s''' % (emailTo, emailSubj, emailBody)
+    		#subprocess.check_output(mailCmd, shell=True)
+			return
+		except Exception as e:
+			print "-------------------------------"
+			print "[ERROR]: Error in sending Email. Reason:"
+			print e
+			print "-------------------------------"
+			print "[MESSAGE]: Skipping sending email and proceeding...\n"
+			return
+
 #The main function
 def main(username, poolname, filePath, graphrequired, intfInfo, excludeDuts, includeIxiaPorts, consolidateInterfaces):
-
-	
 
 	#The below part is used to handle cases of username and/or filePathation provided
 	if username==None and filePath==None:
