@@ -392,24 +392,31 @@ def connectionConsolidator(test):
 def printConnectionsToScreen(dictionaryOfConnections):
 	#************************************************************************
 	#The below code will print the output in neat format
-	print "\n> The topology in text format is: "
 
 	try:
 		f= open("TopologyGenerated.txt","w+")
+
+		print "\n> The topology in text format is: "
+		f.write("\n> The topology in text format is: \n")
+
+		for i in xrange(0,len(dictionaryOfConnections)):
+			output= dictionaryOfConnections[i]['neighborDevice'] + '\t(' + dictionaryOfConnections[i]['neighborPort'] + ')' + '\t--------------------'  + '\t(' + dictionaryOfConnections[i]['port'] + ')' + dictionaryOfConnections[i]['myDevice']
+			f.write(output)
+			f.write('\n')
+			print output
+
+		f.close()
+
 	except IOError:
 		print "[Error]: We did not get permission to generate a text file with the LLDP info. Please fix it if you want to a text file as well"
 		print "[MESSAGE]: Skipping text file and proceeding further"
-		
 
-	f.write("\n> The topology in text format is: \n")
+		print "\n> The topology in text format is: "
 
-	for i in xrange(0,len(dictionaryOfConnections)):
-		output= dictionaryOfConnections[i]['neighborDevice'] + '\t(' + dictionaryOfConnections[i]['neighborPort'] + ')' + '\t--------------------'  + '\t(' + dictionaryOfConnections[i]['port'] + ')' + dictionaryOfConnections[i]['myDevice']
-		f.write(output)
-		f.write('\n')
-		print output
+		for i in xrange(0,len(dictionaryOfConnections)):
+			output= dictionaryOfConnections[i]['neighborDevice'] + '\t(' + dictionaryOfConnections[i]['neighborPort'] + ')' + '\t--------------------'  + '\t(' + dictionaryOfConnections[i]['port'] + ')' + dictionaryOfConnections[i]['myDevice']
+			print output
 
-	f.close()
 	print"\n ---------------------------------------------------------------------------------------------------------------------- \n "
 	#print "Presented to you by anandgokul. Ping me if any errors/ exceptions are encountered that I missed handling...Sayonara! :D \n \n"
 
