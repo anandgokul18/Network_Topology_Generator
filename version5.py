@@ -667,7 +667,8 @@ def sendEmailSwatExtension():
 			emailBody='topology_generated.zip'
 			#sendEmail(emailTo=emailTo, emailSubj=emailSubj, emailBody=emailBody)
 
-			os.system('''mutt -s "%s" -a topology_generated.zip %s'''%(emailSubj,emailTo))
+			mailCmd='''mutt -s "%s" -a topology_generated.zip %s'''%(emailSubj,emailTo)
+			subprocess.check_output(mailCmd, shell=True)
 
 			print "[MESSAGE]: Email has been sent to the email address successfully\n"
 			return
