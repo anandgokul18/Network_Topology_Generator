@@ -24,6 +24,7 @@ import labLib
 from labLib import findDuts
 import clientLib
 from clientLib import sendEmail
+import getpass
 
 def fileDutList(username,filePath):
 	try:
@@ -669,7 +670,7 @@ def sendEmailSwatExtension():
 			#mailCmd='''mutt -s "%s" -i body.txt -a topology_generated.zip -- %s'''%(emailSubj,emailTo)
             #os.system(mailCmd)
 
-        	# Initialize Variables
+        	#Initialize Variables
             user = getpass.getuser()
             emailFile = '/tmp/swat-email.%s.txt' % user
             htmlFile  = '/tmp/swat-email-html.%s.html' % user
