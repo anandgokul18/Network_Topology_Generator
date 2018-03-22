@@ -9,6 +9,9 @@ THIS IS A HACK TO OVERCOME THE CATCH-22 SITUATION IN SERVERS WHEREIN ART TOOLS R
 import os
 os.system("virtualenv . --system-site-package") #Creating a virtual environment *R1
 os.system("source ./bin/activate")
+print "--------------------------------------------------------------"
+print "[MESSAGE] We need to install a few packages and setup virtualenv for this script...Hold on"
+print "--------------------------------------------------------------"
 
 #Python Module Imports
 import pexpect #SSH library with expect support
@@ -42,7 +45,7 @@ except ImportError:
 
 #SWAT Module Imports
 
-os.system("sudo pip install oauth2client==4.1.2")  #hack for fulfilling import requirements *R1
+os.system("sudo pip install oauth2client==4.1.2")  #hack for fulfilling import requirements of labLib *R1
 import labLib
 from labLib import findDuts
 import clientLib
@@ -77,12 +80,13 @@ def fileDutList(username,filePath):
 
 #The below function uses SWAT library to find the list of DUTs owned by user
 def userDutList(username,poolname):
+
+	os.system("sudo pip install oauth2client==1.5.1")  #hack for fulfilling import requirements of findDuts *R1
 	
 	print "----------------------------------------------------------------------------------"
 	print "[WARNING] If you haven't setup the SSH Keys for Syscon (required by SWAT tool libraries), you will be prompted to type 'YES' and provide your Syscon password. If you do not wish for the Swat script to do that for you, fix it yourself when prompted! \n "
 	#print '''[MESSAGE] If you are getting any "Exception raised in 'python /usr/bin/Art list --pool=systest '", then, it is due to Art commands are failing from the server in which you are running this script... Contact @syscon-maintainers '''
 	print "----------------------------------------------------------------------------------"
-	os.system("sudo pip install oauth2client==1.5.1")  #hack for fulfilling import requirements *R1
 	alldevices=findDuts(pool=poolname, all=True)
 
 	devices=alldevices.items()
