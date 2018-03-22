@@ -462,8 +462,8 @@ def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 		returned_value = subprocess.call(installationcheckcmd, shell=True)
 
 		if returned_value==1: #That means OmniGraffle is NOT present
-			print "\t * The PDF file (graphic topology) and txt file (text) have been generated in current directory! " #Instead of OmniGraffle not installed message
-
+			print "\n [MESSAGE] * The PDF file (graphic topology) and txt file (text) have been generated in current directory! " #Instead of OmniGraffle not installed message
+			print "* Script Completed!"
 
 		elif returned_value==0: #That means OmniGraffle is present
 			print "\t * The PDF file (graphic topology) and txt file (text) have been generated in current directory. Also, OmniGraffle has been opened to edit the GV file (graphic topology). Please choose 'Hierarchial' in OmniGraffle to edit it."
@@ -641,8 +641,8 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 		returned_value = subprocess.call(installationcheckcmd, shell=True)
 
 		if returned_value==1: #That means OmniGraffle is NOT present
-			print "\t * The PDF file (graphic topology) and txt file (text) have been generated in current directory! " #Instead of OmniGraffle not installed message
-
+			print "[MESSAGE] The PDF file (graphic topology) and txt file (text) have been generated in current directory! " #Instead of OmniGraffle not installed message
+			print "* Script Completed! "
 
 		elif returned_value==0: #That means OmniGraffle is present
 			print "\t * The PDF file (graphic topology) and txt file (text) have been generated in current directory. Also, OmniGraffle has been opened to edit the GV file (graphic topology). Please choose 'Hierarchial' in OmniGraffle to edit it."
@@ -655,13 +655,16 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 		sys.exit(1)
 
 def sendEmailSwatExtension():
-	emailChoice=raw_input("Do you need to send the generated files to your email? (yes/no): " )
+	emailChoice=raw_input("Do you need to send the generated files to your email? (yes/no). Recommended to type 'yes' unless you want to scp the files out...: " )
 	if emailChoice=='no' or emailChoice=='n' or emailChoice=='N':
 		return
 	else:
 		try:
 			#Compressing the 3 files into a zip file
+			print "---------------------------------------------------------"
+			print "[MESSAGE] Compressing the files into zip: "
 			os.system('zip topology_generated.zip TopologyGenerated.txt Topology.gv.pdf Topology.gv')
+			print "---------------------------------------------------------\n"
 
 			emailTo=raw_input("Enter your Arista email address (To address): ")
 			emailSubj= "Topology generation files- Graphic PDF, Graphic GV and Text"
@@ -675,7 +678,9 @@ def sendEmailSwatExtension():
 			mailCmd='''mutt -s "%s" -a %s < %s -- %s'''%(emailSubj, emailAttachment, emailBody, emailTo)
                         os.system(mailCmd)
 
+			print "---------------------------------------------------------"
 			print "[MESSAGE]: Email has been sent to the email address successfully\n"
+			print "---------------------------------------------------------\n \n"
 			return
 
 		except Exception as e:
