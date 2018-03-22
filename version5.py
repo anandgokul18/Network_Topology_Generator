@@ -64,6 +64,7 @@ def userDutList(username,poolname):
 		os.system('sudo pip install --upgrade google-api-python-client')
 		os.system('sudo pip install pyopenssl')
 		print "--------------------------------------------------------------"
+		alldevices=findDuts(pool=poolname, all=True)
 
 	devices=alldevices.items()
 
