@@ -6,18 +6,32 @@
 #Python Module Imports
 import pexpect #SSH library with expect support
 #import json 
-import pyeapi #eApi support
 import sys
 import os
 import time
 import string
 import argparse
-from graphviz import Source #Make a topology graph
-import paramiko
 import socket
-from pyeapi import eapilib
 import subprocess
 from random import randint
+
+#Non-SWAT libraries that are additionally needed by this script
+try:
+	import paramiko
+	from graphviz import Source #Make a topology graph
+	import pyeapi #eApi support
+	from pyeapi import eapilib
+except ImportError:
+	print "[ERROR] Some packages are missing/ out-of-date...Please provide the password (if prompted) for running install using sudo"
+	print "--------------------------------------------------------------"
+	os.system('sudo pip install paramiko')
+	os.system('sudo pip install graphviz')
+	os.system('sudo pip install pyeapi')
+	print "--------------------------------------------------------------"
+	import paramiko
+	from graphviz import Source #Make a topology graph
+	import pyeapi #eApi support
+	from pyeapi import eapilib
 
 #SWAT Module Imports
 try:
@@ -29,6 +43,8 @@ except ImportError: #To fix 'ImportError: cannot import name ServiceAccountCrede
 	os.system('sudo pip install --upgrade google-api-python-client')
 	os.system('sudo pip install pyopenssl')
 	print "--------------------------------------------------------------"
+	import labLib
+	from labLib import findDuts
 
 import clientLib
 from clientLib import sendEmail
@@ -64,7 +80,7 @@ def fileDutList(username,filePath):
 #The below function uses SWAT library to find the list of DUTs owned by user
 def userDutList(username,poolname):
 	
-	print "[WARNING] If you haven't setup the SSH Keys for Syscon, you will be prompted to type 'YES' and provide your Syscon password. If you do not wish for the Swat script to do that for you, exit and fix it yourself! "
+	print "[WARNING] If you haven't setup the SSH Keys for Syscon (required by SWAT tool libraries), you will be prompted to type 'YES' and provide your Syscon password. If you do not wish for the Swat script to do that for you, fix it yourself when prompted! "
 	alldevices=findDuts(pool=poolname, all=True)
 
 	devices=alldevices.items()
@@ -687,9 +703,9 @@ def sendEmailSwatExtension():
 			mailCmd='''mutt -s "%s" -a %s < %s -- %s'''%(emailSubj, emailAttachment, emailBody, emailTo)
                         os.system(mailCmd)
 
-			print "---------------------------------------------------------"
-			print "[MESSAGE]: Email has been sent to the email address successfully\n"
-			print "---------------------------------------------------------\n \n"
+			print "--------------------------------------------------------------------------------------------"
+			print "[MESSAGE] Email will be sent if mutt had been setup correctly. If you haven't done this, run this from arst or syscon servers since thay are already configured with mutt.\n"
+			print "--------------------------------------------------------------------------------------------\n \n"
 			return
 
 		except Exception as e:
