@@ -53,11 +53,18 @@ def fileDutList(username,filePath):
 		sys.exit(1)
 
 
-
 #The below function uses SWAT library to find the list of DUTs owned by user
 def userDutList(username,poolname):
 	
-	alldevices=findDuts(pool=poolname, all=True)
+	try:
+		alldevices=findDuts(pool=poolname, all=True)
+	except ImportError:
+		print "[ERROR] Some packages are out of date...Please provide the password (if prompted) for running install using sudo"
+		print "--------------------------------------------------------------"
+		os.system('sudo pip install --upgrade google-api-python-client')
+		os.system('sudo pip install pyopenssl')
+		print "--------------------------------------------------------------"
+
 	devices=alldevices.items()
 
 	dictOfDevicesbyuser=[]
