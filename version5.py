@@ -659,49 +659,20 @@ def sendEmailSwatExtension():
 		return
 	else:
 		try:
-			emailTo=raw_input("Enter your Arista email address (To address): ")
-			emailSubj= "Topology generation files- Graphic PDF, Graphic GV and Text"
-
 			#Compressing the 3 files into a zip file
 			os.system('zip topology_generated.zip TopologyGenerated.txt Topology.gv.pdf Topology.gv')
 
-			emailBody='topology_generated.zip'
+			emailTo=raw_input("Enter your Arista email address (To address): ")
+			emailSubj= "Topology generation files- Graphic PDF, Graphic GV and Text"
+			#emailBody='topology_generated.zip'
+			emailAttachment='topology_generated.zip'
+			
+			#SWAT function to send email...did not support attachment...hence commenting this
 			#sendEmail(emailTo=emailTo, emailSubj=emailSubj, emailBody=emailBody)
-			#mailCmd='''mutt -s "%s" -i body.txt -a topology_generated.zip -- %s'''%(emailSubj,emailTo)
-            #os.system(mailCmd)
-
-        	#Initialize Variables
-            user = getpass.getuser()
-            emailFile = '/tmp/swat-email.%s.txt' % user
-            htmlFile  = '/tmp/swat-email-html.%s.html' % user
-
-            # Create Email Body File
-            if os.path.isfile(os.path.expanduser(emailBody)):
-                shutil.copyfile(os.path.expanduser(emailBody), emailFile)
-            else:
-                with open(emailFile, 'w') as fileId:
-                    fileId.write(emailBody)
-
-            # Create Email HTML Body File
-            with open(emailFile, 'r') as readFileId, open(htmlFile, 'w') as writeFileId:
-                # Open HTML Tags
-                writeFileId.write('<html>\n')
-                writeFileId.write('<body>\n')
-                writeFileId.write('<pre style="font: monospace">\n')
-
-                # Body
-                for line in readFileId:
-                    writeFileId.write(line)
-
-                # Close HTML Tags
-                writeFileId.write("</pre>\n")
-                writeFileId.write("</body>\n")
-                writeFileId.write("</html>\n")
-
-            # Sending Email
-            #mailCmd = '''mail -s "$(echo '%s\nContent-Type: text/html')" %s < %s''' % (emailSubj, emailTo, htmlFile)
-            mailCmd = '''mutt -e "set content_type=text/html" %s -s '%s' < %s''' % (emailTo, emailSubj, htmlFile)
-            subprocess.check_output(mailCmd, shell=True)    
+			
+			#Sending Email
+			mailCmd='''mutt -s "%s" -a %s < /dev/null -- %s'''%(emailSubj, emailAttachment, emailTo)
+            os.system(mailCmd)
 
 			print "[MESSAGE]: Email has been sent to the email address successfully\n"
 			return
