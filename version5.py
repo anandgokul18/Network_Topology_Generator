@@ -80,7 +80,10 @@ def fileDutList(username,filePath):
 #The below function uses SWAT library to find the list of DUTs owned by user
 def userDutList(username,poolname):
 	
-	print "[WARNING] If you haven't setup the SSH Keys for Syscon (required by SWAT tool libraries), you will be prompted to type 'YES' and provide your Syscon password. If you do not wish for the Swat script to do that for you, fix it yourself when prompted! "
+	print "----------------------------------------------------------------------------------"
+	print "[WARNING] If you haven't setup the SSH Keys for Syscon (required by SWAT tool libraries), you will be prompted to type 'YES' and provide your Syscon password. If you do not wish for the Swat script to do that for you, fix it yourself when prompted! \n "
+	print '''[MESSAGE] If you are getting any "Exception raised in 'python /usr/bin/Art list --pool=systest '", then, it is not the script's fault. Art commands are failing from the server in which you are running this script... Contact @syscon-maintainers '''
+	print "----------------------------------------------------------------------------------"
 	alldevices=findDuts(pool=poolname, all=True)
 
 	devices=alldevices.items()
