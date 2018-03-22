@@ -3,16 +3,6 @@
 
 #!/usr/bin/python
 
-'''
-THIS IS A HACK TO OVERCOME THE CATCH-22 SITUATION IN SERVERS WHEREIN ART TOOLS REQUIRES oauth2client AS V1.5.1, BUT, SWAT LIBRARIES REQUIRES V4.1.2
-'''
-import os
-os.system("virtualenv . --system-site-package") #Creating a virtual environment *R1
-os.system("source ./bin/activate")
-print "--------------------------------------------------------------"
-print "[MESSAGE] We need to install a few packages and setup virtualenv for this script...Hold on. Provide your current device/server password if prompted to install the packages"
-print "--------------------------------------------------------------"
-
 #Python Module Imports
 import pexpect #SSH library with expect support
 import sys
@@ -44,10 +34,20 @@ except ImportError:
 
 
 #SWAT Module Imports
-
-os.system("sudo pip install oauth2client==4.1.2")  #hack for fulfilling import requirements of labLib *R1
-import labLib
-from labLib import findDuts
+'''
+THIS IS A HACK TO OVERCOME THE CATCH-22 SITUATION IN SERVERS WHEREIN ART TOOLS REQUIRES oauth2client AS V1.5.1, BUT, SWAT LIBRARIES REQUIRES V4.1.2
+'''
+print "--------------------------------------------------------------"
+print "[MESSAGE] We need to install a few packages...Hold on. Provide your current device/server password if prompted to install the packages"
+print "--------------------------------------------------------------"
+os.system("sudo pip install oauth2client==4.1.2")  #[Warning] Definitely not recommended to do. No other way for now...hack for fulfilling import requirements of labLib *R1
+try:
+	import labLib
+	from labLib import findDuts
+except Exception as e:
+	os.system("sudo pip install oauth2client==1.5.1")  #In-case any error happens in the above function, we should not exit out with v4.1.2 installtion since that version breaks Art tools. We need to install v1.X and then exit out...
+	print e
+	sys.exit(1)
 import clientLib
 from clientLib import sendEmail
 os.system("sudo pip install oauth2client==1.5.1")  #hack for fulfilling import requirements of labLib.findDuts *R1
