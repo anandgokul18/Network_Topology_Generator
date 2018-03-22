@@ -704,17 +704,16 @@ def sendEmailSwatExtension():
 			emailAttachment='topology_generated.zip'
 			
 			#SWAT function to send email...did not support attachment...hence commenting this
-			#sendEmail(emailTo=emailTo, emailSubj=emailSubj, emailBody=emailBody)
+			sendEmail(emailTo=emailTo, emailSubj=emailSubj, emailBody=emailBody, attachments=emailAttachment)
 			
-			#Sending Email
-			mailCmd='''mutt -s "%s" -a %s < %s -- %s'''%(emailSubj, emailAttachment, emailBody, emailTo)
-                        os.system(mailCmd)
+			#Sending Email using this script instead of SWAT tool
+			#mailCmd='''mutt -s "%s" -a %s < %s -- %s'''%(emailSubj, emailAttachment, emailBody, emailTo)
+            #            os.system(mailCmd)
 
 			print "--------------------------------------------------------------------------------------------"
 			print "[MESSAGE] Email will be sent if mutt had been setup correctly. If you haven't done this, run this from arst or syscon servers since thay are already configured with mutt.\n"
 			print "--------------------------------------------------------------------------------------------\n \n"
 			
-			os.system("deactivate")   #Deactivating the virtual environment created *R1
 			return
 
 		except Exception as e:
