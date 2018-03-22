@@ -705,14 +705,16 @@ def sendEmailSwatExtension():
 			
 			#SWAT function to send email...did not support attachment...hence commenting this
 			sendEmail(emailTo=emailTo, emailSubj=emailSubj, emailBody=emailBody, attachments=emailAttachment)
+			print "--------------------------------------------------------------------------------------------"
+			print "[MESSAGE] Email has been sent successfully if no error is shown above\n"
+			print "--------------------------------------------------------------------------------------------\n \n"
 			
 			#Sending Email using this script instead of SWAT tool
 			#mailCmd='''mutt -s "%s" -a %s < %s -- %s'''%(emailSubj, emailAttachment, emailBody, emailTo)
             #            os.system(mailCmd)
-
-			print "--------------------------------------------------------------------------------------------"
-			print "[MESSAGE] Email will be sent if mutt had been setup correctly. If you haven't done this, run this from arst or syscon servers since thay are already configured with mutt.\n"
-			print "--------------------------------------------------------------------------------------------\n \n"
+			#print "--------------------------------------------------------------------------------------------"
+			#print "[MESSAGE] Email will be sent if mutt had been setup correctly. If you haven't done this, run this from arst or syscon servers since thay are already configured with mutt.\n"
+			#print "--------------------------------------------------------------------------------------------\n \n"
 			
 			return
 
