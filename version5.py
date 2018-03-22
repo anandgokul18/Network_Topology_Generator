@@ -42,7 +42,7 @@ except ImportError:
 
 #SWAT Module Imports
 
-os.system("pip install oauth2client==4.1.2")  #hack for fulfilling import requirements *R1
+os.system("sudo pip install oauth2client==4.1.2")  #hack for fulfilling import requirements *R1
 import labLib
 from labLib import findDuts
 import clientLib
@@ -82,7 +82,7 @@ def userDutList(username,poolname):
 	print "[WARNING] If you haven't setup the SSH Keys for Syscon (required by SWAT tool libraries), you will be prompted to type 'YES' and provide your Syscon password. If you do not wish for the Swat script to do that for you, fix it yourself when prompted! \n "
 	#print '''[MESSAGE] If you are getting any "Exception raised in 'python /usr/bin/Art list --pool=systest '", then, it is due to Art commands are failing from the server in which you are running this script... Contact @syscon-maintainers '''
 	print "----------------------------------------------------------------------------------"
-	os.system("pip install oauth2client==1.5.1")  #hack for fulfilling import requirements *R1
+	os.system("sudo pip install oauth2client==1.5.1")  #hack for fulfilling import requirements *R1
 	alldevices=findDuts(pool=poolname, all=True)
 
 	devices=alldevices.items()
