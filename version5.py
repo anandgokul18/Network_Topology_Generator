@@ -10,7 +10,7 @@ import os
 os.system("virtualenv . --system-site-package") #Creating a virtual environment *R1
 os.system("source ./bin/activate")
 print "--------------------------------------------------------------"
-print "[MESSAGE] We need to install a few packages and setup virtualenv for this script...Hold on"
+print "[MESSAGE] We need to install a few packages and setup virtualenv for this script...Hold on. Provide your current device/server password if prompted to install the packages"
 print "--------------------------------------------------------------"
 
 #Python Module Imports
@@ -86,6 +86,7 @@ def userDutList(username,poolname):
 	print "----------------------------------------------------------------------------------"
 	print "[WARNING] If you haven't setup the SSH Keys for Syscon (required by SWAT tool libraries), you will be prompted to type 'YES' and provide your Syscon password. If you do not wish for the Swat script to do that for you, fix it yourself when prompted! \n "
 	#print '''[MESSAGE] If you are getting any "Exception raised in 'python /usr/bin/Art list --pool=systest '", then, it is due to Art commands are failing from the server in which you are running this script... Contact @syscon-maintainers '''
+	print "[MESSAGE] SWAT library to read from rdam takes time sometimes...Please be patient"
 	print "----------------------------------------------------------------------------------"
 	alldevices=findDuts(pool=poolname, all=True)
 
