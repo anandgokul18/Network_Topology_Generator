@@ -50,6 +50,8 @@ import labLib
 from labLib import findDuts
 import clientLib
 from clientLib import sendEmail
+os.system("sudo pip install oauth2client==1.5.1")  #hack for fulfilling import requirements of labLib.findDuts *R1
+
 
 def fileDutList(username,filePath):
 	try:
@@ -81,8 +83,6 @@ def fileDutList(username,filePath):
 #The below function uses SWAT library to find the list of DUTs owned by user
 def userDutList(username,poolname):
 
-	os.system("sudo pip install oauth2client==1.5.1")  #hack for fulfilling import requirements of findDuts *R1
-	
 	print "----------------------------------------------------------------------------------"
 	print "[WARNING] If you haven't setup the SSH Keys for Syscon (required by SWAT tool libraries), you will be prompted to type 'YES' and provide your Syscon password. If you do not wish for the Swat script to do that for you, fix it yourself when prompted! \n "
 	#print '''[MESSAGE] If you are getting any "Exception raised in 'python /usr/bin/Art list --pool=systest '", then, it is due to Art commands are failing from the server in which you are running this script... Contact @syscon-maintainers '''
