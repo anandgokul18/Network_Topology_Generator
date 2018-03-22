@@ -683,7 +683,7 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 		sys.exit(1)
 
 def sendEmailSwatExtension():
-	emailChoice=raw_input("Do you need to send the generated files to your email? (yes/no). Recommended to type 'yes' unless you want to scp the files out...: " )
+	emailChoice=raw_input("Do you need to send the generated files to your email? (yes/no). Unless you want to scp the files out, it is Recommended to type 'yes': " )
 	if emailChoice=='no' or emailChoice=='n' or emailChoice=='N':
 		return
 	else:
