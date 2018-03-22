@@ -20,8 +20,16 @@ import subprocess
 from random import randint
 
 #SWAT Module Imports
-import labLib
-from labLib import findDuts
+try:
+	import labLib
+	from labLib import findDuts
+except ImportError:
+	print "[ERROR] Some packages are out of date...Please provide the password (if prompted) for running install using sudo"
+	print "--------------------------------------------------------------"
+	os.system('sudo pip install --upgrade google-api-python-client')
+	os.system('sudo pip install pyopenssl')
+	print "--------------------------------------------------------------"
+
 import clientLib
 from clientLib import sendEmail
 import getpass
@@ -56,15 +64,7 @@ def fileDutList(username,filePath):
 #The below function uses SWAT library to find the list of DUTs owned by user
 def userDutList(username,poolname):
 	
-	try:
-		alldevices=findDuts(pool=poolname, all=True)
-	except ImportError:
-		print "[ERROR] Some packages are out of date...Please provide the password (if prompted) for running install using sudo"
-		print "--------------------------------------------------------------"
-		os.system('sudo pip install --upgrade google-api-python-client')
-		os.system('sudo pip install pyopenssl')
-		print "--------------------------------------------------------------"
-		alldevices=findDuts(pool=poolname, all=True)
+	alldevices=findDuts(pool=poolname, all=True)
 
 	devices=alldevices.items()
 
