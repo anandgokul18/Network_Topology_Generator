@@ -23,7 +23,7 @@ from random import randint
 try:
 	import labLib
 	from labLib import findDuts
-except ImportError:
+except ImportError: #To fix 'ImportError: cannot import name ServiceAccountCredentials' which is observed always when running for first time
 	print "[ERROR] Some packages are out of date...Please provide the password (if prompted) for running install using sudo"
 	print "--------------------------------------------------------------"
 	os.system('sudo pip install --upgrade google-api-python-client')
@@ -64,6 +64,7 @@ def fileDutList(username,filePath):
 #The below function uses SWAT library to find the list of DUTs owned by user
 def userDutList(username,poolname):
 	
+	print "[WARNING] If you haven't setup the SSH Keys for Syscon, you will be prompted to type 'YES' and provide your Syscon password. If you do not wish for the Swat script to do that for you, exit and fix it yourself! "
 	alldevices=findDuts(pool=poolname, all=True)
 
 	devices=alldevices.items()
