@@ -3,9 +3,15 @@
 
 #!/usr/bin/python
 
+'''
+THIS IS A HACK TO OVERCOME THE CATCH-22 SITUATION IN SERVERS WHEREIN ART TOOLS REQUIRES oauth2client AS V1.5.1, BUT, SWAT LIBRARIES REQUIRES V4.1.2
+'''
+import os
+os.system("virtualenv . --system-site-package") #Creating a virtual environment *R1
+os.system("source ./bin/activate")
+
 #Python Module Imports
 import pexpect #SSH library with expect support
-#import json 
 import sys
 import os
 import time
@@ -15,15 +21,15 @@ import socket
 import subprocess
 from random import randint
 
-#Non-SWAT libraries that are additionally needed by this script
+#Non-SWAT and non-default Python libraries that are additionally needed by this script
 try:
 	import paramiko
 	from graphviz import Source #Make a topology graph
 	import pyeapi #eApi support
-	from pyeapi import eapilib
 except ImportError:
 	print "[ERROR] Some packages are missing/ out-of-date...Please provide the password (if prompted) for running install using sudo"
 	print "--------------------------------------------------------------"
+	#Installing these packages globally since they will not break any other existing function
 	os.system('sudo pip install paramiko')
 	os.system('sudo pip install graphviz')
 	os.system('sudo pip install pyeapi')
@@ -31,21 +37,14 @@ except ImportError:
 	import paramiko
 	from graphviz import Source #Make a topology graph
 	import pyeapi #eApi support
-	from pyeapi import eapilib
+
+
 
 #SWAT Module Imports
-#try:
+
+os.system("pip install oauth2client==4.1.2")  #hack for fulfilling import requirements *R1
 import labLib
 from labLib import findDuts
-# except ImportError: #To fix 'ImportError: cannot import name ServiceAccountCredentials' which is observed always when running for first time
-# 	print "[ERROR] Some packages are out of date...Please provide the password (if prompted) for running install using sudo"
-# 	print "--------------------------------------------------------------"
-# 	os.system('sudo pip install --upgrade google-api-python-client')
-# 	os.system('sudo pip install pyopenssl')
-# 	print "--------------------------------------------------------------"
-#	import labLib
-#	from labLib import findDuts
-
 import clientLib
 from clientLib import sendEmail
 
@@ -81,8 +80,9 @@ def userDutList(username,poolname):
 	
 	print "----------------------------------------------------------------------------------"
 	print "[WARNING] If you haven't setup the SSH Keys for Syscon (required by SWAT tool libraries), you will be prompted to type 'YES' and provide your Syscon password. If you do not wish for the Swat script to do that for you, fix it yourself when prompted! \n "
-	print '''[MESSAGE] If you are getting any "Exception raised in 'python /usr/bin/Art list --pool=systest '", then, it is not the script's fault. Art commands are failing from the server in which you are running this script... Contact @syscon-maintainers '''
+	#print '''[MESSAGE] If you are getting any "Exception raised in 'python /usr/bin/Art list --pool=systest '", then, it is due to Art commands are failing from the server in which you are running this script... Contact @syscon-maintainers '''
 	print "----------------------------------------------------------------------------------"
+	os.system("pip install oauth2client==1.5.1")  #hack for fulfilling import requirements *R1
 	alldevices=findDuts(pool=poolname, all=True)
 
 	devices=alldevices.items()
@@ -708,6 +708,8 @@ def sendEmailSwatExtension():
 			print "--------------------------------------------------------------------------------------------"
 			print "[MESSAGE] Email will be sent if mutt had been setup correctly. If you haven't done this, run this from arst or syscon servers since thay are already configured with mutt.\n"
 			print "--------------------------------------------------------------------------------------------\n \n"
+			
+			os.system("deactivate")   #Deactivating the virtual environment created *R1
 			return
 
 		except Exception as e:
