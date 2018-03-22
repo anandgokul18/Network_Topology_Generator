@@ -34,21 +34,20 @@ except ImportError:
 	from pyeapi import eapilib
 
 #SWAT Module Imports
-try:
-	import labLib
-	from labLib import findDuts
-except ImportError: #To fix 'ImportError: cannot import name ServiceAccountCredentials' which is observed always when running for first time
-	print "[ERROR] Some packages are out of date...Please provide the password (if prompted) for running install using sudo"
-	print "--------------------------------------------------------------"
-	os.system('sudo pip install --upgrade google-api-python-client')
-	os.system('sudo pip install pyopenssl')
-	print "--------------------------------------------------------------"
-	import labLib
-	from labLib import findDuts
+#try:
+import labLib
+from labLib import findDuts
+# except ImportError: #To fix 'ImportError: cannot import name ServiceAccountCredentials' which is observed always when running for first time
+# 	print "[ERROR] Some packages are out of date...Please provide the password (if prompted) for running install using sudo"
+# 	print "--------------------------------------------------------------"
+# 	os.system('sudo pip install --upgrade google-api-python-client')
+# 	os.system('sudo pip install pyopenssl')
+# 	print "--------------------------------------------------------------"
+#	import labLib
+#	from labLib import findDuts
 
 import clientLib
 from clientLib import sendEmail
-import getpass
 
 def fileDutList(username,filePath):
 	try:
