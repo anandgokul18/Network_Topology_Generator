@@ -767,8 +767,8 @@ def sendEmailSwatExtension():
 			print "-------------------------------"
 			print "[ERROR]: Error in sending Email. Reason:"
 			print e
+			print "[MESSAGE]: Maybe 'mutt' has not been configured on this device. Skipping sending email and proceeding...\n"
 			print "-------------------------------"
-			print "[MESSAGE]: Skipping sending email and proceeding...\n"
 			return
 
 #The main function
