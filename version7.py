@@ -125,7 +125,9 @@ def userDutList(username,poolname):
 
 	return listofDevicesbyuser
 
-# #The below function uses SWAT library to find the list of DUTs owned by user
+# #Below function will be used when oauth2Client version mis-match issue is fixed on arst1 server
+
+"""
 # def userDutList(username,poolname):
 
 # 	print "----------------------------------------------------------------------------------"
@@ -151,6 +153,7 @@ def userDutList(username,poolname):
 # 	print "\n > The DUTs owned by " + username +" are:  \n\t *  " + str(listofDevicesbyuser)
 
 # 	return listofDevicesbyuser
+"""
 
 def excludedFromList(finalListOfDuts,excludeDuts):
 	#Removing the matches using intersections
@@ -203,7 +206,7 @@ def lldpInfo(dutslist):
 		except pyeapi.eapilib.ConnectionError as e:
 	  		print "\n[Please Wait]: eApi is not enabled on one of your devices namely:<-- "+dutslist[i]+"-->. Hold on while we do that for you \n"
 	  		
-	  		reachabilityFlag=func_eapi_enabler(dutslist[i]) #The return flag '1' is used to skip that device since it was not reachable in first place. If flag=0, then, we can do the below
+	  		reachabilityFlag=enableEapi(dutslist[i]) #The return flag '1' is used to skip that device since it was not reachable in first place. If flag=0, then, we can do the below
 
 	  		if reachabilityFlag==1:
 	  			continue
@@ -348,7 +351,7 @@ def ixiaConnectionDetailGrabber(dutslist,finalConnectionDetails):
 	#print ixialist
 	return ixialist
 
-def func_eapi_enabler(dutname):
+def enableEapi(dutname):
 	#************************************************************************
 	#The below code will enable eApi on all the DUTs in above list
 
@@ -775,28 +778,29 @@ def sendEmailSwatExtension():
 def main(username, poolname, filePath, graphrequired, intfInfo, excludeDuts, includeIxiaPorts, consolidateInterfaces):
 
 	#The below part is used to handle cases of username and/or filePathation provided
-	if username==None and filePath==None:
+	if not username and not filePath:
 		print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
 		print ('[MESSAGE]: Username has not been provided. Using file for Topology generation')
 		filePath = os.path.expanduser('~/setup.txt') #Default File location
 		print ('[MESSAGE]: Default file at ~/setup.txt is used since custom file locaton as not been provided using -f flag')
 		finalListOfDuts= fileDutList(username, filePath)
 
-	elif username==None and filePath!=None:
+	elif not username and filePath:
 		print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
 		print ('[MESSAGE]: Username has not been provided. Using file for Topology generation')
 		finalListOfDuts= fileDutList(username, filePath)
 	
 	else:
-		if filePath!=None:
+		if filePath:
 			print"\n \n ----------------------------------------------------------------------------------------------------------------------  \n"
 			print ('[WARNING]: You have provided both a DUTS list file as well as username. Username has higher priority for Topology generation and will be considered. Ignoring the DUT file info...')
+
 		finalListOfDuts= userDutList(username, poolname) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
 
 		
 
 	#This is used to remove the excludeDuts DUTs from the topology generation
-	if excludeDuts!=None:
+	if excludeDuts:
 		finalListOfDuts=excludedFromList(finalListOfDuts,excludeDuts)
 
 	
