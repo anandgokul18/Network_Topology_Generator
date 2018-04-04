@@ -40,7 +40,7 @@ except ImportError as e:
 	If you get import error above, then, you have 2 options to fix it:
 
 	Option A: Run this SWAT tool from your mac and update the oauth2client using "sudo pip install oauth2client==4.1.2" on your mac
-	Option B: Run this SWAT tool from a VIRTUALENV on arst or syscon servers after updating oauth2client using "pip install oauth2client==4.1.2"
+	Option B: Run this SWAT tool from a VIRTUALENV on arst or syscon servers using "source /opt/venv/bin/activate" and then update oauth2client using "pip install oauth2client==4.1.2" and then run this script
 
 	WARNING: DO NOT UPDATE oauthclient using 'sudo' on syscon or arst servers since installing this version breaks Art tools..Install it on virtualenv without using 'sudo'
 	'''
