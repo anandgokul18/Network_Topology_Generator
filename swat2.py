@@ -301,7 +301,7 @@ def printConnectionsToScreen(dictionaryOfConnections):
 
 def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 
-	#​ This part below checks the number of DUTs and connections and based on it, it creates containers for the graphviz code​
+	# This part below checks the number of DUTs and connections and based on it, it creates containers for the graphviz code
 	if len(dictionaryOfConnections)>20:
 		graph_string='''
 		digraph finite_state_machine {	
@@ -328,7 +328,7 @@ def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 				new_str=string.replace(dictionaryOfConnections[i]['myDevice'], '-', '_')
 				dictionaryOfConnections[i]['myDevice']=new_str
 
-	#The below block is for converting the topology to graphviz format. ​Adding the connection details to the graphviz container created above​
+	#The below block is for converting the topology to graphviz format. Adding the connection details to the graphviz container created above
 	for i in xrange(0,len(dictionaryOfConnections)):
 		if intfInfo:
 			tempvar=dictionaryOfConnections[i]['neighbor'] + ' -> ' + dictionaryOfConnections[i]['myDevice'] + ' [ label = "' + dictionaryOfConnections[i]['neighbor-port'] + '<------>' + dictionaryOfConnections[i]['port'] + '" ]'
@@ -344,7 +344,7 @@ def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 
 	logging.info("> Completed:")
 
-	#​ The below try-except block is for handling errors in graphviz installation due to all the above dependencies on Mac (linux doesn't have much), I try to install brew and then 'brew install graphviz' since brew (unlike apt-get) is not installed by default.​
+	# The below try-except block is for handling errors in graphviz installation due to all the above dependencies on Mac (linux doesn't have much), I try to install brew and then 'brew install graphviz' since brew (unlike apt-get) is not installed by default.
 	try:
 		s = Source(graph_string, filename="Topology.gv", format="pdf")
 		s.view()
@@ -398,7 +398,7 @@ def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 
 def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 
-	#​ This part below checks the number of DUTs and connections and based on it, it creates containers for the graphviz code​
+	# This part below checks the number of DUTs and connections and based on it, it creates containers for the graphviz code
 	if len(dictionaryOfConnections)>20:
 		graph_string='''
 		digraph finite_state_machine {	
@@ -507,7 +507,7 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 	graph_string=graph_string+'''
 	subgraph connector{
 	'''	
-	#The below loop is for converting the topology to graphviz format. Adding the connection details to the graphviz container created above​ 
+	#The below loop is for converting the topology to graphviz format. Adding the connection details to the graphviz container created above
 	for i in xrange(0,len(dictionaryOfConnections)):
 		if intfInfo:
 			tempvar=dictionaryOfConnections[i]['neighbor'] + ' -> ' + dictionaryOfConnections[i]['myDevice'] + ' [ label = "' + dictionaryOfConnections[i]['neighbor-port'] + '<------>' + dictionaryOfConnections[i]['port'] + '",labelfontsize=0.5 ]'
@@ -524,7 +524,7 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 
 	logging.info("> Completed: \n")
 
-	#​ The below try-except block is for handling errors in graphviz installation due to all the above dependencies on Mac (linux doesn't have much), I try to install brew and then 'brew install graphviz' since brew (unlike apt-get) is not installed by default.​
+	# The below try-except block is for handling errors in graphviz installation due to all the above dependencies on Mac (linux doesn't have much), I try to install brew and then 'brew install graphviz' since brew (unlike apt-get) is not installed by default.
 	try:
 		s = Source(graph_string, filename="Topology.gv", format="pdf")
 		s.view()
