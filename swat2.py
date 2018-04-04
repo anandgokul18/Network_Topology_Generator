@@ -1,6 +1,3 @@
-# Copyright (c) 2018 Arista Networks, Inc.  All rights reserved.
-# Arista Networks, Inc. Confidential and Proprietary.
-
 #!/usr/bin/env python
 
 
@@ -14,32 +11,31 @@ This tool also gives you the option to include Ixia ports
 
 
 #Python Module Imports
-import os
-import time
-import string
 import argparse
-import socket
-import subprocess
-import re
 import collections
 import logging
+import os
+import re
+import string
+import socket
+import subprocess
+import time
 from random import randint
 
 #Non-SWAT and non-default Python libraries that are additionally needed by this script
 import graphviz
-from graphviz import Source #Make a topology graph
+from graphviz import Source 
 
 #SWAT Module Imports
 import logLib
 from clientLib import sendEmail
-from initToolLib import connectDevices
 from eosLldp import EosLldp
 from eosIntf import EosIntf
+from initToolLib import connectDevices
 from scriptLib import abort
-#from proxyLib import Proxy, checkProxySession
 try:
 	from labLib import findDuts   #Doesn't work due to oauth2client version issue...using proxylib to run Art command directly
-except Exception as e:
+except ImportError as e:
 	message='''
 	If you get import error above, then, you have 2 options to fix it:
 
@@ -56,6 +52,8 @@ except Exception as e:
 
 
 #Internal Functions to massage data provided by SWAT and generate graphs
+
+#The below function gets DUTlist from a file
 def fileDutList(username,filePath):
 	try:
 
@@ -68,12 +66,10 @@ def fileDutList(username,filePath):
 		for i,data in enumerate(listofdutsasperfile):
 			if '#' in data[0] or '\n' in data[0]:
 				listofdutsasperfile[i]=None
-		#print listofdutsasperfile
 
 		for i,data in enumerate(listofdutsasperfile):
 			if data!=None:
 				temp.append(data.strip())
-		#print temp
 
 		logging.info("\n > List of DUTS as per the file provided is:")
 		logging.info("\t * "+str(temp))
@@ -81,73 +77,10 @@ def fileDutList(username,filePath):
 	except IOError:
 		logging.info("\n[ERROR]: File does not exist in "+filePath+" . Please ensure correct file location to proceed \n")
 		abort()
-"""
-#The below function uses SWAT library to find the list of DUTs owned by user
-@checkProxySession
-def userDutList(username,poolname):
-
-	logging.info("----------------------------------------------------------------------------------")
-	#print "[WARNING] If you haven't setup the SSH Keys for Syscon (required by SWAT tool libraries), you will be prompted to type 'YES' and provide your Syscon password. If you do not wish for the Swat script to do that for you, fix it yourself when prompted! \n "
-	#print '''[MESSAGE] If you are getting any "Exception raised in 'python /usr/bin/Art list --pool=systest '", then, it is due to Art commands are failing from the server in which you are running this script... Contact @syscon-maintainers '''
-	logging.info("[MESSAGE] SWAT library to read from rdam takes time sometimes...Please be patient")
-	logging.info("----------------------------------------------------------------------------------")
-	#alldevices=findDuts(pool=poolname, all=True)
-	cmd = "Art list --pool=%s" % poolname
-	output = Proxy.session.cliSend(cmd)
-	#print output
-
-
-	# Parse Output
-	retVal = {}
-	for line in output[2:]:
-        # Initialize DUT Variables
-		dut = line[0]
-		match = re.search('^([a-z]{2,3})\d+$', dut)
-
-        # Skip Unexpected DUT Names (e.g CVP nodes)
-		if not match: continue
-
-        # DUT Data
-		dutPrefix = match.group(1)
-
-    	# RDAM Info
-		location = line[1]
-		owner = line[2] if line[2] != '+' else line[4]
-
-        # Create dictionary with duts as keys & dut information as values
-		retVal[dut] = { 'owner': owner}
-
-		retVal = collections.OrderedDict(retVal)
-
-
-
-
-	devices=retVal.items()
-
-	dictOfDevicesbyuser=[]
-	listofDevicesbyuser=[]
-
-	for i,data in enumerate(devices):
-		if data[1]['owner']==username:
-			dictOfDevicesbyuser.append(data)
-			listofDevicesbyuser.append(data[0])
-
-	#print dictOfDevicesbyuser
-	#print listofDevicesbyuser
-
-	logging.info("\n > The DUTs owned by " + username +" are:  \n\t *  " + str(listofDevicesbyuser))
-
-	return listofDevicesbyuser
-"""
 
 #The below function uses SWAT library to find the list of DUTs owned by user...has oauth2client version issue...The above commented code fixes this
 def userDutList(username,poolname):
 
-	logging.info("----------------------------------------------------------------------------------")
-	#print "[WARNING] If you haven't setup the SSH Keys for Syscon (required by SWAT tool libraries), you will be prompted to type 'YES' and provide your Syscon password. If you do not wish for the Swat script to do that for you, fix it yourself when prompted! \n "
-	#print '''[MESSAGE] If you are getting any "Exception raised in 'python /usr/bin/Art list --pool=systest '", then, it is due to Art commands are failing from the server in which you are running this script... Contact @syscon-maintainers '''
-	logging.info("[MESSAGE] SWAT library to read from rdam takes time sometimes...Please be patient")
-	logging.info("----------------------------------------------------------------------------------")
 	alldevices=findDuts(pool=poolname, all=True)
 
 	devices=alldevices.items()
@@ -160,11 +93,7 @@ def userDutList(username,poolname):
 			dictOfDevicesbyuser.append(data)
 			listofDevicesbyuser.append(data[0])
 
-	#print dictOfDevicesbyuser
-	#print listofDevicesbyuser
-
 	logging.info("\n > The DUTs owned by " + username +" are:  \n\t *  " + str(listofDevicesbyuser))
-
 	return listofDevicesbyuser
 
 def excludedFromList(finalListOfDuts,excludeDuts):
@@ -180,22 +109,21 @@ def excludedFromList(finalListOfDuts,excludeDuts):
 	return finallist
 
 def warningMessage():
-	logging.info("\n !!! INFORMATIONAL WARNING !!! ")
-	logging.info( "This script will not include interfaces that are shut or errdisabled. If you need to include even those, make sure they are Up.")
-	logging.info("\n !!! LLDP WARNING !!! ")
-	logging.info("This script assumes that all lldp devices are shown in typical format of 'hostname.sjc.aristanetworks.com'. Untypical lldp info such as mac address will give out unsupported error, please address it if you are shown that error.")
-	logging.info("\n !!! OUTPUT WARNING !!! ")
-	logging.info("This script will consider all non-LLDP supported neighbors (such as linux servers) as Ixia connections only. \n")
+	message='''
+	\n !!! INFORMATIONAL WARNING !!! 
+	This script will not include interfaces that are shut or errdisabled. If you need to include even those, make sure they are Up.
+	\n !!! LLDP WARNING !!!
+	This script assumes that all lldp devices are shown in typical format of 'hostname.sjc.aristanetworks.com'. Untypical lldp info such as mac address will give out unsupported error, please address it if you are shown that error.
+	\n !!! OUTPUT WARNING !!!
+	This script will consider all non-LLDP supported neighbors (such as linux servers) as Ixia connections only. \n
+	'''
+	logging.info(message)
 
 def lldpInfo(dutslist):
 	
-#************************************************************************
-#The below code will grab lldp info from all DUTs in json format and refine it and
-#it will consolidate all the lldp information into a single dictionary
-
+#The below code will grab lldp info from all DUTs in json format using SWAT library 
 	tempDictOfConnections=[]
 
-  	#The below try and except block will handle errors due to eAPI not enabled on one of the DUT
 	for i in xrange(0,len(dutslist)):
 		
 		#Getting LLDP info using SWAT library function
@@ -203,34 +131,27 @@ def lldpInfo(dutslist):
 		logging.info("[MESSAGE]: Getting LLDP info from "+dutslist[i])
 		a,=a
 		temp = a.getLldpInfo()
-		#print temp
 
 		allneighbors =temp['neighbors']
-		#print allneighbors
 
 		for j in xrange(0,len(allneighbors)):
 			temp_diction = allneighbors[j]
 			temp_diction['myDevice']=str(dutslist[i]) #+'.sjc.aristanetworks.com'
 			tempDictOfConnections.append(temp_diction)
-			#print temp_diction
 
 		tempDictOfConnections = tempDictOfConnections[:-1]
-		#print tempDictOfConnections	
 
 	#************************************************************************
 	#The below code will remove the duplicates from the grand dictionary such that one connection shows up only once. The duplicates are marked as key=temp and value=NULL
 
 	for i in xrange(0,len(tempDictOfConnections)):
 		tempvar= tempDictOfConnections[i] #Storing each dictionary in one temp variable
-		#print tempvar
-		#print '\n'
 		instantaneoustempvar= []
 		instantaneoustempvar=[tempvar['neighbor'],tempvar['neighbor-port']]
 		tempvar['neighbor']= tempvar['myDevice']
 		tempvar['neighbor-port']= tempvar['port']
 		tempvar['myDevice']=instantaneoustempvar[0]
 		tempvar['port']=instantaneoustempvar[1]
-		#print tempvar
 
 		count=0
 		for j in xrange(0,len(tempDictOfConnections)):
@@ -239,8 +160,6 @@ def lldpInfo(dutslist):
 
 		if count==2:
 			tempDictOfConnections[i]={'temp':'Null'}
-
-	#print tempDictOfConnections
 	
 	#************************************************************************
 	#The below code will remove the duplicates completely by removing dictionaries with key as temp. ALso, removing the '.sjc.aristanetworks.com' in DUT name
@@ -253,22 +172,18 @@ def lldpInfo(dutslist):
 			tempDictOfConnections[i]['myDevice']=tempDictOfConnections[i]['myDevice'].split('.')[0]
 			try:
 				tempDictOfConnections[i]['port']='Et'+(tempDictOfConnections[i]['port'].split('Et')[1])
+				tempDictOfConnections[i]['neighbor-port']='Et'+(tempDictOfConnections[i]['neighbor-port'].split('Et')[1])
 			except:
-				logging.info("[ERROR]: One of your lldp neighbors is not in typical format. Read above LLDP Warning on how to fix it and then rerun the script")
-				abort("* Script Complete!")
-			tempDictOfConnections[i]['neighbor-port']='Et'+(tempDictOfConnections[i]['neighbor-port'].split('Et')[1])
+				#This block will not make any changes to non-Arista devices
+				continue
+
 			dictionaryOfConnections.append(tempDictOfConnections[i])
 
 	return dictionaryOfConnections
 
+#The below function get ixia details (by finding diff of connected and lldp interfaces)
 def ixiaConnectionDetailGrabber(dutslist,finalConnectionDetails):
 	
-#************************************************************************
-#The below code will grab lldp info from all DUTs in json format and refine it and
-#it will consolidate all the lldp information into a single dictionary
-
-	#print finalConnectionDetails
-
 	ixialist=[]
 
 	for i in xrange(0,len(dutslist)):
@@ -280,24 +195,17 @@ def ixiaConnectionDetailGrabber(dutslist,finalConnectionDetails):
 			a,=a
 			a.setAccessMethod('api')
 			temp = a.getConnectedIntfs()
-			#print temp
 
 			allconnections =temp
-			#print allconnections
-
 			listofconnections= allconnections.keys()
-			#print listofconnections
 
 			#Removing management and port-channel interfaces from list
 			for k in xrange(0,len(listofconnections)):
-				#print listofconnections[k]
 				if 'Management' in listofconnections[k] or 'Port-Channel' in listofconnections[k] or '.' in listofconnections[k]:
 					listofconnections[k]=None
-				#print listofconnections[k]
 
 			#Removing lldp interfaces from ixia interfaces
 			for j in xrange(0,len(finalConnectionDetails)):
-				#print finalConnectionDetails[i]
 			   	if finalConnectionDetails[j]['neighbor'] or finalConnectionDetails[j]['myDevice']==dutslist[i]:
 			   		if finalConnectionDetails[j]['neighbor']==dutslist[i]:
 			   			for k in xrange(0,len(listofconnections)):
@@ -308,8 +216,6 @@ def ixiaConnectionDetailGrabber(dutslist,finalConnectionDetails):
 			   				if listofconnections[k]==('Ethernet'+finalConnectionDetails[j]['port'].split('Et')[1]):
 			   					listofconnections[k]=None
 			
-			#print listofconnections
-
 			#Makes a dictionary containing the DUT name and the Ixia ports
 			onlyixiaconnections=[]
 			for k in xrange(0,len(listofconnections)):
@@ -318,16 +224,13 @@ def ixiaConnectionDetailGrabber(dutslist,finalConnectionDetails):
 					onlyixiaconnections.append(listofconnections[k])
 					ixiadict['neighbor']=dutslist[i]
 					ixiadict['neighbor-port']=('Et'+listofconnections[k].split('Ethernet')[1])
-					#print listofconnections[k]
-					ixiadict['myDevice']='Ixia' #+'_'+str(randint(0,100))
+					ixiadict['myDevice']='Ixia' 
 					ixiadict['port']='unknown'
 					ixialist.append(ixiadict)
-					#print onlyixiaconnections
 		except:
 			logging.info("[MESSAGE]: Skipping "+dutslist[i] +" from Ixia connection calculation due to some error")
 			continue
 	
-	#print ixialist
 	return ixialist
 
 def connectionConsolidator(test):
@@ -345,14 +248,10 @@ def connectionConsolidator(test):
 			connections[a+'_'+b]['port'].append(p1)
 			connections[a+'_'+b]['neighbor-port'].append(p2)
 
-	#print connections
-
 	finallist=[]
 
 	for value in connections.values():
 		finallist.append(value)
-
-	#print finallist
 
 	for i,data in enumerate(finallist):
 		data['neighbor-port'].sort()
@@ -372,12 +271,10 @@ def connectionConsolidator(test):
 		else:
 			data['port']=startport
 
-	#print finallist
 	return finallist
 
+#The below function will print the output in neat format to screen as well as write to a text file
 def printConnectionsToScreen(dictionaryOfConnections):
-	#************************************************************************
-	#The below code will print the output in neat format
 
 	try:
 		f= open("TopologyGenerated.txt","w+")
@@ -404,14 +301,7 @@ def printConnectionsToScreen(dictionaryOfConnections):
 
 def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 
-	logging.info("[MESSAGE] Ignore on Linux. On macOS, ignore unless prompted for Xcode tools installation:")
-	logging.info("----------------------------------------------------------------------------")
-	var1= os.system("xcode-select --install")
-	var= os.system("brew install graphviz")
-	logging.info("----------------------------------------------------------------------------")
-
-	os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
-
+	#​This part below checks the number of DUTs and connections and based on it, it creates containers for the graphviz code​ 
 	if len(dictionaryOfConnections)>20:
 		graph_string='''
 		digraph finite_state_machine {	
@@ -428,7 +318,7 @@ def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 
 		'''	
 	
-	#The below block is for handling '-' and '.' being present in DUT name
+	#The below block is for handling '-' and '.' being present in DUT name since it causes error in graphviz
 	for i in xrange(0,len(dictionaryOfConnections)):
 		if '-' in dictionaryOfConnections[i]['neighbor'] or '-' in dictionaryOfConnections[i]['myDevice'] or '.' in dictionaryOfConnections[i]['neighbor'] or '.' in dictionaryOfConnections[i]['myDevice']:
 			if '-' in dictionaryOfConnections[i]['neighbor'] or '.' in dictionaryOfConnections[i]['neighbor']:
@@ -438,42 +328,56 @@ def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 				new_str=string.replace(dictionaryOfConnections[i]['myDevice'], '-', '_')
 				dictionaryOfConnections[i]['myDevice']=new_str
 
-	#The below block is for converting the topology to graphviz format
+	#The below block is for converting the topology to graphviz format. ​Adding the connection details to the graphviz container created above​ 
 	for i in xrange(0,len(dictionaryOfConnections)):
 		if intfInfo:
 			tempvar=dictionaryOfConnections[i]['neighbor'] + ' -> ' + dictionaryOfConnections[i]['myDevice'] + ' [ label = "' + dictionaryOfConnections[i]['neighbor-port'] + '<------>' + dictionaryOfConnections[i]['port'] + '" ]'
+		#The below else block is for case when user chose not to include interface labels in topology
 		else:
 			tempvar=dictionaryOfConnections[i]['neighbor'] + ' -> ' + dictionaryOfConnections[i]['myDevice']
 		graph_string=graph_string+tempvar+'\n'
 
 	graph_string=graph_string+'}'
-	#print graph_string
 
 	logging.info("----------------------------------------------------------------------------")
 	logging.info("[MESSAGE] If your device names contains either '.' or '-', it will be replaced by '_' to avoid conflict with other packages\n \n")
 
-	logging.info("> Completed Successfully: ")
-	#print "There is both a readily-available pdf file as well as a .gv file which can be imported to graphing tools like OmniGraffle for further editing(get license for Omnigraffle from helpdesk..:/\n"
+	logging.info("> Completed:")
+
+	#​The below try-except block is for handling errors in graphviz installation due to all the above dependencies on Mac (linux doesn't have much), I try to install brew and then 'brew install graphviz' since brew (unlike apt-get) is not installed by default.​
 	try:
 		s = Source(graph_string, filename="Topology.gv", format="pdf")
 		s.view()
 
 		#Send Email with the script
 		sendEmailSwatExtension()
+
+
+	#The below except block is used to install Xcode-Cli tools, brew and graphviz since Mac requires additional dependencies (if not present already)
 	except Exception as e:
-		logging.info(e)
 		logging.info("\n ---------------------------------------------------------------------------------------------------------------------- ")
-		logging.info("[ERROR] Looks like we encountered an error. We'll see if installing a package fixes it. Please provide your mac password if prompted")
+		logging.info("[ERROR] Looks like we encountered an error. ERROR is:")
+		logging.info(e)
+		logging.info(" We'll see if installing a few packages fixes it. Please provide your device (Mac/server) password if prompted.")
 		logging.info("---------------------------------------------------------------------------------------------------------------------- ")
+		#Installing Xcode command-line tools for Mac
+		var1= os.system("xcode-select --install")
+		#Installing Brew
 		var=os.system('''/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"''')
+		#Installing Graphviz using brew
 		var= os.system("brew install graphviz")
-		os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
+		#This is used to clear the screen ...similar to Ctrl+L in bash
+		os.system('tput reset') 
+
+
 		s = Source(graph_string, filename="Topology.gv", format="pdf")
 		s.view()
 
 		#Send Email with the script
 		sendEmailSwatExtension()
-		
+	
+
+	#The below code block if for opening the editable .gv file using Omnigraffle if it is installed on the user's Mac. Else, skip and print 'Script Complete'	
 	try:
 		installationcheckcmd="ls /Applications/ | grep -i OmniGraffle"
 		returned_value = subprocess.call(installationcheckcmd, shell=True)
@@ -494,14 +398,7 @@ def automaticGraphGenerator(dictionaryOfConnections, intfInfo):
 
 def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 
-	logging.info("[MESSAGE] Ignore on Linux. On macOS, ignore unless prompted for Xcode tools installation:")
-	logging.info("----------------------------------------------------------------------------")
-	var1= os.system("xcode-select --install")
-	var= os.system("brew install graphviz")
-	logging.info("----------------------------------------------------------------------------")
-
-	os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
-
+	#​This part below checks the number of DUTs and connections and based on it, it creates containers for the graphviz code​ 
 	if len(dictionaryOfConnections)>20:
 		graph_string='''
 		digraph finite_state_machine {	
@@ -520,10 +417,9 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 	alreadyadded=[]
 	dictoflevels={}
 
+	#The below block is used for getting the levels of DUTs (.ie. whether leaf/spine/super-spine/...) from user
 	for i in xrange(1,(int(nooflevels)+1)):
 		dictoflevels[i]=[]
-	#print dictoflevels
-
 	try:
 		for i in xrange(0,len(dictionaryOfConnections)):
 			if dictionaryOfConnections[i]['neighbor']==dictionaryOfConnections[i]['myDevice']:
@@ -539,17 +435,13 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 				if dictionaryOfConnections[i]['myDevice'] not in alreadyadded:
 					alreadyadded.append(dictionaryOfConnections[i]['myDevice'])
 					value=raw_input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+dictionaryOfConnections[i]['myDevice'] +": ")
-					dictoflevels[int(value)].append(dictionaryOfConnections[i]['myDevice'])
-			#print alreadyadded
-		
+					dictoflevels[int(value)].append(dictionaryOfConnections[i]['myDevice'])		
 	except KeyError as e:
 		logging.info('[ERROR] The entered value is outside the range of total levels. Please rerun again...')
 		abort('* Script Complete')
 		
-	#print dictoflevels
 
-
-	#The below block is for handling '-' and '.' being present in DUT name
+	#The below block is for handling '-' and '.' being present in DUT name since it causes error in graphviz
 	for i in xrange(0,len(dictionaryOfConnections)):
 		if '-' in dictionaryOfConnections[i]['neighbor'] or '-' in dictionaryOfConnections[i]['myDevice'] or '.' in dictionaryOfConnections[i]['neighbor'] or '.' in dictionaryOfConnections[i]['myDevice']:
 			if '-' in dictionaryOfConnections[i]['neighbor'] or '.' in dictionaryOfConnections[i]['neighbor']:
@@ -566,6 +458,7 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 				dictionaryOfConnections[i]['myDevice']=new_str
 
 
+	#The below block is for creating containers in Dot language for all the levels 
 	for j in reversed(xrange(1,(int(nooflevels)+1))):
 		graph_string=graph_string+"\n\nsubgraph level"+str(j) +" {"
 		if j==1:
@@ -591,7 +484,7 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 			node[style=filled, shape=box,color=yellow, fontsize=8];
 			'''
 
-		#Adding the devices to each level
+		#Adding the devices to each level created above
 		for k in xrange(0,len(dictoflevels[j])):
 
 			#Handling '-' or '.' present in the name
@@ -608,31 +501,30 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 
 		graph_string=graph_string+"}"
 
-	#print graph_string
 
-	#The below is generic connector code
+	#The below block is used for adding the connections to DUTs for graph generation
+
 	graph_string=graph_string+'''
 	subgraph connector{
 	'''	
-
-	#The below block is for converting the topology to graphviz format
+	#The below loop is for converting the topology to graphviz format. ​Adding the connection details to the graphviz container created above​ 
 	for i in xrange(0,len(dictionaryOfConnections)):
 		if intfInfo:
 			tempvar=dictionaryOfConnections[i]['neighbor'] + ' -> ' + dictionaryOfConnections[i]['myDevice'] + ' [ label = "' + dictionaryOfConnections[i]['neighbor-port'] + '<------>' + dictionaryOfConnections[i]['port'] + '",labelfontsize=0.5 ]'
+		#The below else block is for case when user chose not to include interface labels in topology		
 		else:
 			tempvar=dictionaryOfConnections[i]['neighbor'] + ' -> ' + dictionaryOfConnections[i]['myDevice']		
 		graph_string=graph_string+tempvar+'\n'
 
 	graph_string=graph_string+'}}'
-	#print graph_string
 
 	logging.info("----------------------------------------------------------------------------")
 	logging.info("[MESSAGE] If your device names contains either '.' or '-', it will be replaced by '_' to avoid conflict with other packages")
 	logging.info("[MESSAGE] If you get a blank file as output, please verify your choice for device levels. Your choice may have given impossible to comprehend/design for our tool \n \n")
 
-	logging.info("> Completed successfully: \n")
+	logging.info("> Completed: \n")
 
-	#print "There is both a readily-available pdf file as well as a .gv file which can be imported to graphing tools like OmniGraffle for further editing(get license for Omnigraffle from helpdesk..:/\n"
+	#​The below try-except block is for handling errors in graphviz installation due to all the above dependencies on Mac (linux doesn't have much), I try to install brew and then 'brew install graphviz' since brew (unlike apt-get) is not installed by default.​
 	try:
 		s = Source(graph_string, filename="Topology.gv", format="pdf")
 		s.view()
@@ -640,19 +532,30 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 		#Send Email with the script
 		sendEmailSwatExtension()
 
-	except:
+	#The below except block is used to install Xcode-Cli tools, brew and graphviz since Mac requires additional dependencies (if not present already)
+	except Exception as e:
 		logging.info("\n ---------------------------------------------------------------------------------------------------------------------- ")
-		logging.info("[ERROR] Looks like we encountered an error. We'll see if installing a package fixes it. Please provide your mac password if prompted")
+		logging.info("[ERROR] Looks like we encountered an error. ERROR is:")
+		logging.info(e)
+		logging.info(" We'll see if installing a few packages fixes it. Please provide your device (Mac/server) password if prompted.")
 		logging.info("---------------------------------------------------------------------------------------------------------------------- ")
+		#Installing Xcode command-line tools for Mac
+		var1= os.system("xcode-select --install")
+		#Installing Brew
 		var=os.system('''/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"''')
+		#Installing Graphviz using brew
 		var= os.system("brew install graphviz")
-		os.system('tput reset') #This is used to clear the screen ...similar to Ctrl+L in bash
+		#This is used to clear the screen ...similar to Ctrl+L in bash
+		os.system('tput reset') 
+
+
 		s = Source(graph_string, filename="Topology.gv", format="pdf")
 		s.view()
 
 		#Send Email with the script
 		sendEmailSwatExtension()
-		
+
+	#The below code block if for opening the editable .gv file using Omnigraffle if it is installed on the user's Mac. Else, skip and print 'Script Complete'			
 	try:
 		installationcheckcmd="ls /Applications/ | grep -i OmniGraffle"
 		returned_value = subprocess.call(installationcheckcmd, shell=True)
@@ -688,18 +591,11 @@ def sendEmailSwatExtension():
 			emailBody='TopologyGenerated.txt'
 			emailAttachment='topology_generated.zip'
 			
-			#SWAT function to send email...did not support attachment...hence commenting this
+			#Calling SWAT function to send email
 			sendEmail(emailTo=emailTo, emailSubj=emailSubj, emailBody=emailBody, attachments=emailAttachment)
 			logging.info("--------------------------------------------------------------------------------------------")
 			logging.info("[MESSAGE] Email has been sent successfully if no error is shown above\n")
 			logging.info("--------------------------------------------------------------------------------------------\n \n")
-			
-			#Sending Email using this script instead of SWAT tool
-			#mailCmd='''mutt -s "%s" -a %s < %s -- %s'''%(emailSubj, emailAttachment, emailBody, emailTo)
-            #            os.system(mailCmd)
-			#print "--------------------------------------------------------------------------------------------"
-			#print "[MESSAGE] Email will be sent if mutt had been setup correctly. If you haven't done this, run this from arst or syscon servers since thay are already configured with mutt.\n"
-			#print "--------------------------------------------------------------------------------------------\n \n"
 			
 			return
 
@@ -734,20 +630,14 @@ def mainFunc(username, poolname, filePath, graphrequired, intfInfo, excludeDuts,
 
 		finalListOfDuts= userDutList(username, poolname) #login to us128 and grab the list of DUTs owned by current user and return a list containing the DUTs
 
-		
 
 	#This is used to remove the excludeDuts DUTs from the topology generation
 	if excludeDuts:
-		finalListOfDuts=excludedFromList(finalListOfDuts,excludeDuts)
-
-	
+		finalListOfDuts=excludedFromList(finalListOfDuts,excludeDuts)	
 
 	warningMessage() #Will warn users about the list of reasons why the script could fail
 	  	
-	
 	finalConnectionDetails= lldpInfo(finalListOfDuts) #does the work of grabbing lldp info from all the DUTs, and removing duplicates 
-  	#print finalConnectionDetails
-	
 
   	#This is used to include Ixia Connections as well based on user flag for ixia
 	if not includeIxiaPorts:
@@ -755,15 +645,12 @@ def mainFunc(username, poolname, filePath, graphrequired, intfInfo, excludeDuts,
 	else:
 		listOfIxiaConnections= ixiaConnectionDetailGrabber(finalListOfDuts, finalConnectionDetails) 
 		finalConnectionDetails=finalConnectionDetails+listOfIxiaConnections
-		#print finalConnectionDetails 
-	#print finalConnectionDetails
 
 	#This is used to consolidate the links between same two devices
 	if consolidateInterfaces:
 		finalConnectionDetails=connectionConsolidator(finalConnectionDetails)		
 
 	printConnectionsToScreen(finalConnectionDetails)
-
 
 	if not graphrequired:
 		logging.info('[MESSAGE]: Graph not generated due to user choice')
