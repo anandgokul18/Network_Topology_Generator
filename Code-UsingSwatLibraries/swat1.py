@@ -34,8 +34,7 @@ from eosIntf import EosIntf
 from initToolLib import connectDevices
 from scriptLib import abort
 try:
-	from proxyLib import Proxy, checkProxySession
-	#from labLib import findDuts   #Doesn't work due to oauth2client version issue...using proxylib to run Art command directly
+	from labLib import findDuts   #Doesn't work due to oauth2client version issue...using proxylib to run Art command directly
 except ImportError as e:
 	message='''
 	If you get import error above, then, you have 2 options to fix it:
@@ -79,67 +78,6 @@ def fileDutList(username,filePath):
 		logging.info("\n[ERROR]: File does not exist in "+filePath+" . Please ensure correct file location to proceed \n")
 		abort()
 
-#The below function uses SWAT library to find the list of DUTs owned by user
-@checkProxySession
-def userDutList(username,poolname):
-
-	print "----------------------------------------------------------------------------------"
-	#print "[WARNING] If you haven't setup the SSH Keys for Syscon (required by SWAT tool libraries), you will be prompted to type 'YES' and provide your Syscon password. If you do not wish for the Swat script to do that for you, fix it yourself when prompted! \n "
-	#print '''[MESSAGE] If you are getting any "Exception raised in 'python /usr/bin/Art list --pool=systest '", then, it is due to Art commands are failing from the server in which you are running this script... Contact @syscon-maintainers '''
-	print "[MESSAGE] SWAT library to read from rdam takes time sometimes...Please be patient"
-	print "----------------------------------------------------------------------------------"
-	#alldevices=findDuts(pool=poolname, all=True)
-	cmd = "Art list --pool=%s" % poolname
-	output = Proxy.session.cliSend(cmd)
-	#print output
-
-
-	# Parse Output
-	retVal = {}
-	prefixes=None
-	chipsets=None
-	category='all'
-	for line in output[2:]:
-        # Initialize DUT Variables
-		dut = line[0]
-		match = re.search('^([a-z]{2,3})\d+$', dut)
-
-        # Skip Unexpected DUT Names (e.g CVP nodes)
-		if not match: continue
-
-        # DUT Data
-		dutPrefix = match.group(1)
-
-    	# RDAM Info
-		location = line[1]
-		owner = line[2] if line[2] != '+' else line[4]
-
-        # Create dictionary with duts as keys & dut information as values
-		retVal[dut] = { 'owner': owner}
-
-		retVal = collections.OrderedDict(retVal)
-
-
-
-
-	devices=retVal.items()
-
-	dictOfDevicesbyuser=[]
-	listofDevicesbyuser=[]
-
-	for i,data in enumerate(devices):
-		if data[1]['owner']==username:
-			dictOfDevicesbyuser.append(data)
-			listofDevicesbyuser.append(data[0])
-
-	#print dictOfDevicesbyuser
-	#print listofDevicesbyuser
-
-	print "\n > The DUTs owned by " + username +" are:  \n\t *  " + str(listofDevicesbyuser)
-
-	return listofDevicesbyuser
-
-'''	
 #The below function uses SWAT library to find the list of DUTs owned by user...has oauth2client version issue...The above commented code fixes this
 def userDutList(username,poolname):
 
@@ -157,7 +95,7 @@ def userDutList(username,poolname):
 
 	logging.info("\n > The DUTs owned by " + username +" are:  \n\t *  " + str(listofDevicesbyuser))
 	return listofDevicesbyuser
-'''
+
 def excludedFromList(finalListOfDuts,excludeDuts):
 	#Removing the matches using intersections
 	ss= set(finalListOfDuts)
