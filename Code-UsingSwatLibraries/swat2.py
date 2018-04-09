@@ -180,6 +180,9 @@ def lldpInfo(dutslist):
 			dictionaryOfConnections.append(tempDictOfConnections[i])
 
 	return dictionaryOfConnections
+
+
+#THE BELOW BLOCK HAS BEEN COMMENTED DUE TO THIS LIBRARY NOT PRESENT IN SWAT TOOL
 '''
 #The below function get ixia details (by finding diff of connected and lldp interfaces)
 def ixiaConnectionDetailGrabber(dutslist,finalConnectionDetails):
