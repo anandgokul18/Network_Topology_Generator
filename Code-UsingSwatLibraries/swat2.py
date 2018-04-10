@@ -660,6 +660,12 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 	if (int(nooflevels))==3:
 		graph_string=graph_string+"\n\nsubgraph level_master {"
 
+		graph_string=graph_string+"\n\nsubgraph level_topmaster {"
+		graph_string=graph_string+'''
+		rank=min;
+		'''
+
+		graph_string=graph_string+"\n\nsubgraph level_submaster2 {"
 		graph_string=graph_string+'''
 		rank=min;
 		node[style=filled, shape=box,color=red, fontsize=8];
@@ -677,8 +683,15 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 					dictoflevels[3][k]=new_str
 
 			graph_string=graph_string+dictoflevels[3][k]+";\n"
+		graph_string=graph_string+"}" #closing submaster2		
+
+		graph_string=graph_string+"}" #Closing topmaster
+
 
 		graph_string=graph_string+"\n\nsubgraph level_middlemaster {"
+		graph_string=graph_string+'''
+		rank=max;
+		'''
 
 		#j=1 container and devices
 		graph_string=graph_string+"\n\nsubgraph level_slave1 {"
@@ -728,6 +741,11 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 	if (int(nooflevels))==4:
 		graph_string=graph_string+"\n\nsubgraph level_master {"
 
+		graph_string=graph_string+"\n\nsubgraph level_topmaster {"
+		graph_string=graph_string+'''
+		rank=min;
+		'''
+
 		graph_string=graph_string+"\n\nsubgraph level_submaster1 {"
 		graph_string=graph_string+'''
 		rank=min;
@@ -768,7 +786,13 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 			graph_string=graph_string+dictoflevels[3][k]+";\n"
 		graph_string=graph_string+"}" #closing submaster2		
 
+		graph_string=graph_string+"}" #Closing topmaster
+
+
 		graph_string=graph_string+"\n\nsubgraph level_middlemaster {"
+		graph_string=graph_string+'''
+		rank=max;
+		'''
 
 		#j=1 container and devices
 		graph_string=graph_string+"\n\nsubgraph level_slave1 {"
@@ -832,8 +856,6 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 
 	graph_string=graph_string+'}}'
 
-	print graph_string
-	#abort("")
 
 	logging.info("----------------------------------------------------------------------------")
 	logging.info("[MESSAGE] If your device names contains either '.' or '-', it will be replaced by '_' to avoid conflict with other packages")
