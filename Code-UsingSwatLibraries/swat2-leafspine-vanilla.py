@@ -607,215 +607,50 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 				dictionaryOfConnections[i]['myDevice']=new_str
 
 
-	#Creating container blocks
-	graph_string=graph_string+"\n\ncompound=True;"
+	#The below block is for creating containers in Dot language for all the levels 
+	for j in reversed(xrange(1,(int(nooflevels)+1))):
+		graph_string=graph_string+"\n\nsubgraph level"+str(j) +" {"
+		if j==1:
+			graph_string=graph_string+'''
+			rank=max;
+			node[style=filled, shape=box,color=green, fontsize=8];
 
-	if (int(nooflevels))==2:
-		graph_string=graph_string+"\n\nsubgraph level_master {"
+			'''
+		elif j==2:
+			if int(nooflevels)==2:
+				graph_string=graph_string+'''
+				rank=min;
+				node[style=filled, shape=box,color=red, fontsize=8];
+				'''
+			else:
+				graph_string=graph_string+'''
+				rank=same;
+				node[style=filled, shape=box,color=red, fontsize=8];
+				'''				
+		else:
+			graph_string=graph_string+'''
+			rank=min;
+			node[style=filled, shape=box,color=yellow, fontsize=8];
+			'''
 
-		#j=1 container and devices
-		graph_string=graph_string+"\n\nsubgraph level_slave1 {"
-		graph_string=graph_string+'''
-		rank=max;
-		node[style=filled, shape=box,color=green, fontsize=8];
-
-		'''	
-		for k in xrange(0,len(dictoflevels[1])):   #j=1 so dictoflevels[1]
-
-			#Handling '-' or '.' present in the name
-			if '-' in dictoflevels[1][k] or '.' in dictoflevels[1][k]: 
-				if '-' in dictoflevels[1][k]:
-					new_str=string.replace(dictoflevels[1][k], '-', '_')
-					dictoflevels[1][k]=new_str
-				if '.' in dictoflevels[1][k]:
-					new_str=string.replace(dictoflevels[1][k], '.', '_')
-					dictoflevels[1][k]=new_str
-
-			graph_string=graph_string+dictoflevels[1][k]+";\n"
-		graph_string=graph_string+"}" #closing slave1
-
-		#j=2 container and devices
-		graph_string=graph_string+"\n\nsubgraph level_slave2 {"
-		graph_string=graph_string+'''
-		rank=min;
-		node[style=filled, shape=box,color=red, fontsize=8];
-
-		'''	
-		for k in xrange(0,len(dictoflevels[2])):   #j=2 so dictoflevels[2]
+		#Adding the devices to each level created above
+		for k in xrange(0,len(dictoflevels[j])):
 
 			#Handling '-' or '.' present in the name
-			if '-' in dictoflevels[2][k] or '.' in dictoflevels[2][k]: 
-				if '-' in dictoflevels[2][k]:
-					new_str=string.replace(dictoflevels[2][k], '-', '_')
-					dictoflevels[2][k]=new_str
-				if '.' in dictoflevels[2][k]:
-					new_str=string.replace(dictoflevels[2][k], '.', '_')
-					dictoflevels[2][k]=new_str
+			if '-' in dictoflevels[j][k] or '.' in dictoflevels[j][k]: 
+				if '-' in dictoflevels[j][k]:
+					new_str=string.replace(dictoflevels[j][k], '-', '_')
+					dictoflevels[j][k]=new_str
+				if '.' in dictoflevels[j][k]:
+					new_str=string.replace(dictoflevels[j][k], '.', '_')
+					dictoflevels[j][k]=new_str
 
-			graph_string=graph_string+dictoflevels[2][k]+";\n"
-		graph_string=graph_string+"}" #Closing slave2
+			graph_string=graph_string+dictoflevels[j][k]+";\n"
 
-		graph_string=graph_string+"}" #Closing master
 
-	if (int(nooflevels))==3:
-		graph_string=graph_string+"\n\nsubgraph level_master {"
+		graph_string=graph_string+"}"
 
-		graph_string=graph_string+'''
-		rank=min;
-		node[style=filled, shape=box,color=red, fontsize=8];
 
-		'''			
-		for k in xrange(0,len(dictoflevels[3])):   #j=3 so dictoflevels[3]
-
-			#Handling '-' or '.' present in the name
-			if '-' in dictoflevels[3][k] or '.' in dictoflevels[3][k]: 
-				if '-' in dictoflevels[3][k]:
-					new_str=string.replace(dictoflevels[3][k], '-', '_')
-					dictoflevels[3][k]=new_str
-				if '.' in dictoflevels[3][k]:
-					new_str=string.replace(dictoflevels[3][k], '.', '_')
-					dictoflevels[3][k]=new_str
-
-			graph_string=graph_string+dictoflevels[3][k]+";\n"
-
-		graph_string=graph_string+"\n\nsubgraph level_middlemaster {"
-
-		#j=1 container and devices
-		graph_string=graph_string+"\n\nsubgraph level_slave1 {"
-		graph_string=graph_string+'''
-		rank=max;
-		node[style=filled, shape=box,color=green, fontsize=8];
-
-		'''	
-		for k in xrange(0,len(dictoflevels[1])):   #j=1 so dictoflevels[1]
-
-			#Handling '-' or '.' present in the name
-			if '-' in dictoflevels[1][k] or '.' in dictoflevels[1][k]: 
-				if '-' in dictoflevels[1][k]:
-					new_str=string.replace(dictoflevels[1][k], '-', '_')
-					dictoflevels[1][k]=new_str
-				if '.' in dictoflevels[1][k]:
-					new_str=string.replace(dictoflevels[1][k], '.', '_')
-					dictoflevels[1][k]=new_str
-
-			graph_string=graph_string+dictoflevels[1][k]+";\n"
-		graph_string=graph_string+"}" #closing slave1
-
-		#j=2 container and devices
-		graph_string=graph_string+"\n\nsubgraph level_slave2 {"
-		graph_string=graph_string+'''
-		rank=min;
-		node[style=filled, shape=box,color=yellow, fontsize=8];
-
-		'''	
-		for k in xrange(0,len(dictoflevels[2])):   #j=2 so dictoflevels[2]
-
-			#Handling '-' or '.' present in the name
-			if '-' in dictoflevels[2][k] or '.' in dictoflevels[2][k]: 
-				if '-' in dictoflevels[2][k]:
-					new_str=string.replace(dictoflevels[2][k], '-', '_')
-					dictoflevels[2][k]=new_str
-				if '.' in dictoflevels[2][k]:
-					new_str=string.replace(dictoflevels[2][k], '.', '_')
-					dictoflevels[2][k]=new_str
-
-			graph_string=graph_string+dictoflevels[2][k]+";\n"
-		graph_string=graph_string+"}" #Closing slave2
-
-		graph_string=graph_string+"}" #Closing middlemaster
-		graph_string=graph_string+"}" #Closing master
-
-	if (int(nooflevels))==4:
-		graph_string=graph_string+"\n\nsubgraph level_master {"
-
-		graph_string=graph_string+"\n\nsubgraph level_submaster1 {"
-		graph_string=graph_string+'''
-		rank=min;
-		node[style=filled, shape=box,color=blue, fontsize=8];
-
-		'''			
-		for k in xrange(0,len(dictoflevels[4])):   #j=4 so dictoflevels[4]
-
-			#Handling '-' or '.' present in the name
-			if '-' in dictoflevels[4][k] or '.' in dictoflevels[4][k]: 
-				if '-' in dictoflevels[4][k]:
-					new_str=string.replace(dictoflevels[4][k], '-', '_')
-					dictoflevels[4][k]=new_str
-				if '.' in dictoflevels[4][k]:
-					new_str=string.replace(dictoflevels[4][k], '.', '_')
-					dictoflevels[4][k]=new_str
-
-			graph_string=graph_string+dictoflevels[4][k]+";\n"
-		graph_string=graph_string+"}" #closing submaster1
-
-		graph_string=graph_string+"\n\nsubgraph level_submaster2 {"
-		graph_string=graph_string+'''
-		rank=max;
-		node[style=filled, shape=box,color=red, fontsize=8];
-
-		'''			
-		for k in xrange(0,len(dictoflevels[3])):   #j=3 so dictoflevels[3]
-
-			#Handling '-' or '.' present in the name
-			if '-' in dictoflevels[3][k] or '.' in dictoflevels[3][k]: 
-				if '-' in dictoflevels[3][k]:
-					new_str=string.replace(dictoflevels[3][k], '-', '_')
-					dictoflevels[3][k]=new_str
-				if '.' in dictoflevels[3][k]:
-					new_str=string.replace(dictoflevels[3][k], '.', '_')
-					dictoflevels[3][k]=new_str
-
-			graph_string=graph_string+dictoflevels[3][k]+";\n"
-		graph_string=graph_string+"}" #closing submaster2		
-
-		graph_string=graph_string+"\n\nsubgraph level_middlemaster {"
-
-		#j=1 container and devices
-		graph_string=graph_string+"\n\nsubgraph level_slave1 {"
-		graph_string=graph_string+'''
-		rank=max;
-		node[style=filled, shape=box,color=green, fontsize=8];
-
-		'''	
-		for k in xrange(0,len(dictoflevels[1])):   #j=1 so dictoflevels[1]
-
-			#Handling '-' or '.' present in the name
-			if '-' in dictoflevels[1][k] or '.' in dictoflevels[1][k]: 
-				if '-' in dictoflevels[1][k]:
-					new_str=string.replace(dictoflevels[1][k], '-', '_')
-					dictoflevels[1][k]=new_str
-				if '.' in dictoflevels[1][k]:
-					new_str=string.replace(dictoflevels[1][k], '.', '_')
-					dictoflevels[1][k]=new_str
-
-			graph_string=graph_string+dictoflevels[1][k]+";\n"
-		graph_string=graph_string+"}" #closing slave1
-
-		#j=2 container and devices
-		graph_string=graph_string+"\n\nsubgraph level_slave2 {"
-		graph_string=graph_string+'''
-		rank=min;
-		node[style=filled, shape=box,color=yellow, fontsize=8];
-
-		'''	
-		for k in xrange(0,len(dictoflevels[2])):   #j=2 so dictoflevels[2]
-
-			#Handling '-' or '.' present in the name
-			if '-' in dictoflevels[2][k] or '.' in dictoflevels[2][k]: 
-				if '-' in dictoflevels[2][k]:
-					new_str=string.replace(dictoflevels[2][k], '-', '_')
-					dictoflevels[2][k]=new_str
-				if '.' in dictoflevels[2][k]:
-					new_str=string.replace(dictoflevels[2][k], '.', '_')
-					dictoflevels[2][k]=new_str
-
-			graph_string=graph_string+dictoflevels[2][k]+";\n"
-		graph_string=graph_string+"}" #Closing slave2
-
-		graph_string=graph_string+"}" #Closing middlemaster
-		graph_string=graph_string+"}" #Closing master
-
-	
 	#The below block is used for adding the connections to DUTs for graph generation
 
 	graph_string=graph_string+'''
@@ -831,9 +666,6 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 		graph_string=graph_string+tempvar+'\n'
 
 	graph_string=graph_string+'}}'
-
-	print graph_string
-	#abort("")
 
 	logging.info("----------------------------------------------------------------------------")
 	logging.info("[MESSAGE] If your device names contains either '.' or '-', it will be replaced by '_' to avoid conflict with other packages")
