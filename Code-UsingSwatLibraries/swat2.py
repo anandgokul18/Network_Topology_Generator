@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# coding=utf8
 
 '''
 This script creates a topology 
@@ -204,6 +204,22 @@ def lldpInfo(dutslist):
 		tempDictOfConnections = tempDictOfConnections[:-1]
 
 	#************************************************************************
+	#The below code will use regular expresions to get only the DUT name (and not hostname) since some people use naming schemes like ck221_leaf (OR) s1_ckp355
+
+	regex = r"(?:[^\-_\+\|\.]*)[a-z][a-z][0-9][0-9][0-9](?:[^\-_\+\|\.]*)"
+
+	for i in xrange(0,len(tempDictOfConnections)):
+		#For neighbor names
+		test_str = tempDictOfConnections[i]['neighbor']
+		matches = re.search(regex, test_str, re.IGNORECASE)
+		tempDictOfConnections[i]['neighbor']= matches.group()
+
+		#For my device names
+		test_str = tempDictOfConnections[i]['myDevice']
+		matches = re.search(regex, test_str, re.IGNORECASE)
+		tempDictOfConnections[i]['myDevice']= matches.group()
+
+	#************************************************************************
 	#The below code will remove the duplicates from the grand dictionary such that one connection shows up only once. The duplicates are marked as key=temp and value=NULL
 
 	for i in xrange(0,len(tempDictOfConnections)):
@@ -222,7 +238,8 @@ def lldpInfo(dutslist):
 
 		if count==2:
 			tempDictOfConnections[i]={'temp':'Null'}
-	
+
+
 	#************************************************************************
 	#The below code will remove the duplicates completely by removing dictionaries with key as temp. ALso, removing the '.sjc.aristanetworks.com' in DUT name
 
