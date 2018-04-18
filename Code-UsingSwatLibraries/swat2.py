@@ -83,11 +83,6 @@ def fileDutList(username,filePath):
 @checkProxySession
 def userDutList(username,poolname):
 
-	print "----------------------------------------------------------------------------------"
-	#print "[WARNING] If you haven't setup the SSH Keys for Syscon (required by SWAT tool libraries), you will be prompted to type 'YES' and provide your Syscon password. If you do not wish for the Swat script to do that for you, fix it yourself when prompted! \n "
-	#print '''[MESSAGE] If you are getting any "Exception raised in 'python /usr/bin/Art list --pool=systest '", then, it is due to Art commands are failing from the server in which you are running this script... Contact @syscon-maintainers '''
-	print "[MESSAGE] SWAT library to read from rdam takes time sometimes...Please be patient"
-	print "----------------------------------------------------------------------------------"
 	#alldevices=findDuts(pool=poolname, all=True)
 	cmd = "Art list --pool=%s" % poolname
 	output = Proxy.session.cliSend(cmd)
@@ -118,9 +113,6 @@ def userDutList(username,poolname):
 		retVal[dut] = { 'owner': owner}
 
 		retVal = collections.OrderedDict(retVal)
-
-
-
 
 	devices=retVal.items()
 
@@ -171,6 +163,7 @@ def excludedFromList(finalListOfDuts,excludeDuts):
 	return finallist
 
 def warningMessage():
+	print "----------------------------------------------------------------------------------"
 	message='''
 	\n !!! INFORMATIONAL WARNING !!! 
 	This script will not include interfaces that are shut or errdisabled. If you need to include even those, make sure they are Up.
@@ -180,7 +173,8 @@ def warningMessage():
 	This script will consider all non-LLDP supported neighbors (such as linux servers) as Ixia connections only. \n
 	'''
 	logging.info(message)
-
+	print "----------------------------------------------------------------------------------"
+	
 def lldpInfo(dutslist):
 	
 #The below code will grab lldp info from all DUTs in json format using SWAT library 
@@ -190,7 +184,7 @@ def lldpInfo(dutslist):
 		
 		#Getting LLDP info using SWAT library function
 		a=connectDevices(dutslist[i])
-		logging.info("[MESSAGE]: Getting LLDP info from "+dutslist[i])
+		logging.info("  * Getting LLDP info from "+dutslist[i])
 		a,=a
 		temp = a.getLldpInfo()
 
@@ -261,29 +255,22 @@ def lldpInfo(dutslist):
 	return dictionaryOfConnections
 
 
-#THE BELOW BLOCK HAS BEEN COMMENTED DUE TO THIS LIBRARY NOT PRESENT IN SWAT TOOL
-'''
 #The below function get ixia details (by finding diff of connected and lldp interfaces)
 def ixiaConnectionDetailGrabber(dutslist,finalConnectionDetails):
-	
+
 	ixialist=[]
-
-	for i in xrange(0,len(dutslist)):
 	
+	for i in xrange(0,len(dutslist)):	
 		try:	
-			#Getting Connected Interfaces info using SWAT library function
+			#We already have a session during the lldp...using the same session
 			a=connectDevices(dutslist[i])
-			logging.info("[MESSAGE]: Getting Ixia Details info from "+dutslist[i])
+			logging.info("  * Getting Ixia Details info from "+dutslist[i])
 			a,=a
-			a.setAccessMethod('api')
-			temp = a.getConnectedIntfs()
-
-			allconnections =temp
-			listofconnections= allconnections.keys()
+			listofconnections = a.getConnectedIntfs()	
 
 			#Removing management and port-channel interfaces from list
 			for k in xrange(0,len(listofconnections)):
-				if 'Management' in listofconnections[k] or 'Port-Channel' in listofconnections[k] or '.' in listofconnections[k]:
+				if 'Ma' in listofconnections[k] or 'Po' in listofconnections[k] or '.' in listofconnections[k]:
 					listofconnections[k]=None
 
 			#Removing lldp interfaces from ixia interfaces
@@ -291,11 +278,11 @@ def ixiaConnectionDetailGrabber(dutslist,finalConnectionDetails):
 			   	if finalConnectionDetails[j]['neighbor'] or finalConnectionDetails[j]['myDevice']==dutslist[i]:
 			   		if finalConnectionDetails[j]['neighbor']==dutslist[i]:
 			   			for k in xrange(0,len(listofconnections)):
-			   				if listofconnections[k]==('Ethernet'+finalConnectionDetails[j]['neighbor-port'].split('Et')[1]):
+			   				if listofconnections[k]==finalConnectionDetails[j]['neighbor-port']:
 			   					listofconnections[k]=None
 			   		if finalConnectionDetails[j]['myDevice']==dutslist[i]:
 			   			for k in xrange(0,len(listofconnections)):
-			   				if listofconnections[k]==('Ethernet'+finalConnectionDetails[j]['port'].split('Et')[1]):
+			   				if listofconnections[k]==finalConnectionDetails[j]['port']:
 			   					listofconnections[k]=None
 			
 			#Makes a dictionary containing the DUT name and the Ixia ports
@@ -305,81 +292,14 @@ def ixiaConnectionDetailGrabber(dutslist,finalConnectionDetails):
 				if listofconnections[k]!=None:
 					onlyixiaconnections.append(listofconnections[k])
 					ixiadict['neighbor']=dutslist[i]
-					ixiadict['neighbor-port']=('Et'+listofconnections[k].split('Ethernet')[1])
+					ixiadict['neighbor-port']=listofconnections[k]
 					ixiadict['myDevice']='Ixia' 
 					ixiadict['port']='unknown'
 					ixialist.append(ixiadict)
-		except:
-			logging.info("[MESSAGE]: Skipping "+dutslist[i] +" from Ixia connection calculation due to some error")
+		except Exception as e:
+			logging.info("[MESSAGE]: Skipping "+dutslist[i] +" from Ixia connection calculation due to error: "+ str(e))
 			continue
 	
-	return ixialist
-'''
-
-def ixiaConnectionDetailGrabber(dutslist,finalConnectionDetails):
-	
-#************************************************************************
-#The below code will grab lldp info from all DUTs in json format and refine it and
-#it will consolidate all the lldp information into a single dictionary
-
-	#print finalConnectionDetails
-
-	ixialist=[]
-
-	for i in xrange(0,len(dutslist)):
-	
-		try:	
-			#Using Python eAPi for getting outputs in json format
-			conn = pyeapi.connect(host=dutslist[i], transport='https')
-			temp = conn.execute(['show interfaces status connected'])
-			#print temp
-
-			allconnections =temp['result'][0]['interfaceStatuses']
-			#print allconnections
-
-			listofconnections= allconnections.keys()
-			#print listofconnections
-
-			#Removing management and port-channel interfaces from list
-			for k in xrange(0,len(listofconnections)):
-				#print listofconnections[k]
-				if 'Management' in listofconnections[k] or 'Port-Channel' in listofconnections[k] or '.' in listofconnections[k]:
-					listofconnections[k]=None
-				#print listofconnections[k]
-
-			#Removing lldp interfaces from ixia interfaces
-			for j in xrange(0,len(finalConnectionDetails)):
-				#print finalConnectionDetails[i]
-			   	if finalConnectionDetails[j]['neighborDevice'] or finalConnectionDetails[j]['myDevice']==dutslist[i]:
-			   		if finalConnectionDetails[j]['neighborDevice']==dutslist[i]:
-			   			for k in xrange(0,len(listofconnections)):
-			   				if listofconnections[k]==('Ethernet'+finalConnectionDetails[j]['neighborPort'].split('Et')[1]):
-			   					listofconnections[k]=None
-			   		if finalConnectionDetails[j]['myDevice']==dutslist[i]:
-			   			for k in xrange(0,len(listofconnections)):
-			   				if listofconnections[k]==('Ethernet'+finalConnectionDetails[j]['port'].split('Et')[1]):
-			   					listofconnections[k]=None
-			
-			#print listofconnections
-
-			#Makes a dictionary containing the DUT name and the Ixia ports
-			onlyixiaconnections=[]
-			for k in xrange(0,len(listofconnections)):
-				ixiadict={}
-				if listofconnections[k]!=None:
-					onlyixiaconnections.append(listofconnections[k])
-					ixiadict['neighborDevice']=dutslist[i]
-					ixiadict['neighborPort']=('Et'+listofconnections[k].split('Ethernet')[1])
-					#print listofconnections[k]
-					ixiadict['myDevice']='Ixia' #+'_'+str(randint(0,100))
-					ixiadict['port']='unknown'
-					ixialist.append(ixiadict)
-					#print onlyixiaconnections
-		except:
-			print "[MESSAGE]: Skipping "+dutslist[i] +" from Ixia connection calculation as well since it is unreachable"
-			continue
-	
-	#print ixialist
 	return ixialist
 
 def connectionConsolidator(test):
@@ -786,7 +706,7 @@ def mainFunc(username, poolname, filePath, graphrequired, intfInfo, excludeDuts,
 
 	warningMessage() #Will warn users about the list of reasons why the script could fail
 	  	
-	finalConnectionDetails= lldpInfo(finalListOfDuts) #does the work of grabbing lldp info from all the DUTs, and removing duplicates 
+	finalConnectionDetails= lldpInfo(finalListOfDuts) #does the work of grabbing lldp info "and connected interfaces" from all the DUTs, and removing duplicates 
 
   	#This is used to include Ixia Connections as well based on user flag for ixia
 	if not includeIxiaPorts:
