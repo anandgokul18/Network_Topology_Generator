@@ -268,10 +268,12 @@ def ixiaConnectionDetailGrabber(dutslist,finalConnectionDetails):
 			a,=a
 			listofconnections = a.getConnectedIntfs()	
 
-			#Removing management and port-channel interfaces from list
+			#Removing management and port-channel interfaces from list and changing naming scheme from swat's 'et' to my 'Et'
 			for k in xrange(0,len(listofconnections)):
-				if 'Ma' in listofconnections[k] or 'Po' in listofconnections[k] or '.' in listofconnections[k]:
+				if 'ma' in listofconnections[k] or 'po' in listofconnections[k] or '.' in listofconnections[k]:
 					listofconnections[k]=None
+				elif 'et' in listofconnections[k]:
+					listofconnections[k]=listofconnections[k].replace('et','Et')
 
 			#Removing lldp interfaces from ixia interfaces
 			for j in xrange(0,len(finalConnectionDetails)):
