@@ -12,7 +12,6 @@ By default, the topology will be generated for devices specified in ~/setup.txt.
 2. Then, do a "sudo pip install -r requirements.txt" from that directory
 3. Then, run the script using 'python generateTestbedTopology.py [flags]'
 
-IMPORTANT INFO: The most recent version of the code is the 'swat2.py' inside 'Code-UsingSwatLibraries' directory
 
 ### Inputs
 
