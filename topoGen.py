@@ -753,7 +753,7 @@ if __name__== "__main__":
 	# Parsing Options
 	parser = argparse.ArgumentParser(description='Used to generate topology incl. ixia connection by taking username as input',formatter_class=argparse.RawDescriptionHelpFormatter)
 	parser.add_argument('-u', '--user', help="Username of user who's topology is needed")
-	parser.add_argument('-p', '--pool', default='systest', help='Specify the pool for the above user (default = systest)')
+	parser.add_argument('-p', '--pool', default='LabTracker', help='Specify the pool for the above user (default = LabTracker)')
 	parser.add_argument('-f', '--file', help='Setup File / DUT List to Load (default = ~/setup.txt)')
 	parser.add_argument('-g', '--graph', action='store_false', help= "Add this flag if you DON'T want graph to be generated(default = generated)")
 	parser.add_argument('-i', '--ixia', action='store_false', help='Add this flag to exclude Ixia Ports from topology(default = included)')

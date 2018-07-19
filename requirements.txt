@@ -1,4 +1,4 @@
 pexpect==4.2.1
 pyeapi==0.8.1
 graphviz==0.8
-paramiko==2.2.1
+paramiko==2.2.3
