@@ -207,13 +207,13 @@ def lldpInfo(dutslist):
 	for i in range(0,len(tempDictOfConnections)):
 		#For neighbor names
 		test_str = tempDictOfConnections[i]['neighbor']
-		matches = re.search(test_str.decode('utf-8'), re.I | re.U)   
+		matches = re.search(regex, test_str, re.I | re.U)  
 		if matches:     #To prevent AttributeError when there are no matches
 			tempDictOfConnections[i]['neighbor']= matches.group()
 
 		#For my device names
 		test_str = tempDictOfConnections[i]['myDevice']
-		matches = re.search(regex.decode('utf-8'), test_str.decode('utf-8'), re.I | re.U)
+		matches = re.search(regex, test_str, re.I | re.U)
 		if matches:
 			tempDictOfConnections[i]['myDevice']= matches.group()
 
