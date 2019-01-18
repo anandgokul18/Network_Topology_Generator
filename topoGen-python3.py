@@ -487,7 +487,7 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 		node [shape = box];
 		'''
 
-	nooflevels=raw_input("Please enter the number of levels in your topology. Eg) Leaf-Spine is 2 levels and Leaf-Spine-Superspine is 3 levels. (Enter a integer:) ")
+	nooflevels=input("Please enter the number of levels in your topology. Eg) Leaf-Spine is 2 levels and Leaf-Spine-Superspine is 3 levels. (Enter a integer:) ")
 
 	alreadyadded=[]
 	dictoflevels={}
@@ -500,16 +500,16 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 			if dictionaryOfConnections[i]['neighbor']==dictionaryOfConnections[i]['myDevice']:
 				if dictionaryOfConnections[i]['neighbor'] not in alreadyadded:
 					alreadyadded.append(dictionaryOfConnections[i]['neighbor'])
-					value=raw_input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+dictionaryOfConnections[i]['neighbor'] +": ")
+					value=input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+dictionaryOfConnections[i]['neighbor'] +": ")
 					dictoflevels[int(value)].append(dictionaryOfConnections[i]['neighbor'])
 			else:
 				if dictionaryOfConnections[i]['neighbor'] not in alreadyadded:
 					alreadyadded.append(dictionaryOfConnections[i]['neighbor'])
-					value=raw_input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+dictionaryOfConnections[i]['neighbor'] +": ")
+					value=input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+dictionaryOfConnections[i]['neighbor'] +": ")
 					dictoflevels[int(value)].append(dictionaryOfConnections[i]['neighbor'])
 				if dictionaryOfConnections[i]['myDevice'] not in alreadyadded:
 					alreadyadded.append(dictionaryOfConnections[i]['myDevice'])
-					value=raw_input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+dictionaryOfConnections[i]['myDevice'] +": ")
+					value=input ("Enter the level/hierarchy in range of 1 to "+nooflevels+" (with 1 being lowest) of "+dictionaryOfConnections[i]['myDevice'] +": ")
 					dictoflevels[int(value)].append(dictionaryOfConnections[i]['myDevice'])		
 	except KeyError as e:
 		logging.info('[ERROR] The entered value is outside the range of total levels. Please rerun again...')
@@ -650,7 +650,7 @@ def graphGeneratorwithLeafSpine(dictionaryOfConnections,intfInfo):
 		
 
 def sendEmailSwatExtension():
-	emailChoice=raw_input("Do you need to send the generated files to your email? (yes/no). Unless you want to scp the files out, it is Recommended to type 'yes': " )
+	emailChoice=input("Do you need to send the generated files to your email? (yes/no). Unless you want to scp the files out, it is Recommended to type 'yes': " )
 	if emailChoice=='no' or emailChoice=='n' or emailChoice=='N':
 		return
 	else:
@@ -661,7 +661,7 @@ def sendEmailSwatExtension():
 			os.system('zip topology_generated.zip TopologyGenerated.txt Topology.gv.pdf Topology.gv')
 			logging.info("---------------------------------------------------------\n")
 
-			emailTo=raw_input("Enter your Arista email address (To address): ")
+			emailTo=input("Enter your Arista email address (To address): ")
 			emailSubj= "Topology generation files- Graphic PDF, Graphic GV and Text"
 			emailBody='TopologyGenerated.txt'
 			emailAttachment='topology_generated.zip'
@@ -733,7 +733,7 @@ def mainFunc(username, poolname, filePath, graphrequired, intfInfo, excludeDuts,
 		abort('* Script Complete!')
 	else:
 		while True:
-			userchoice = raw_input("Do you have a preference of Leaf-Spine for the DUTs (yes/no)? Type 'no' if you have no clue it means:  ")
+			userchoice = input("Do you have a preference of Leaf-Spine for the DUTs (yes/no)? Type 'no' if you have no clue it means:  ")
 			if userchoice=='n' or userchoice=='no' or userchoice=='N':
 				automaticGraphGenerator(finalConnectionDetails, intfInfo) #generates a graphical representation with random location of DUTs
 				break
